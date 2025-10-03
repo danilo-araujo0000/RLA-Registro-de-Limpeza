@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Registro de Limpeza{% endblock %}
+
+{% block style %}
+.card { 
+    background-color: #fff; 
+    padding: 35px; 
+    border-radius: 10px; 
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+}
+#camposTerminal { display: none; }
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Registro de Limpeza</h2>
+        <a href="{% url 'index_view' sala.id_sala %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Setor:</label>
+        <input type="text" class="form-control" value="{{ sala.nome_setor }}" disabled>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Sala:</label>
+        <input type="text" class="form-control" value="{{ sala.nome_sala }}" disabled>
+    </div>
+
+    <form action="{% url 'salvar_registro_view' %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="id_sala" value="{{ sala.id_sala }}">
+
+        <div class="mb-3">
+            <label class="form-label">Colaborador:</label>
+            <input type="text" name="colaborador" class="form-control" required>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Data:</label>
+                <input type="date" name="data" id="data" class="form-control" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Hora da Limpeza:</label>
+                <input type="time" name="hora_limpeza" id="hora_limpeza" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Tipo de Limpeza:</label>
+            <select name="tipo_limpeza" id="tipo_limpeza" class="form-select" required>
+                <option value="concorrente">Concorrente</option>
+                <option value="terminal">Terminal</option>
+            </select>
+        </div>
+
+        <div id="camposTerminal">
+            <div class="mb-3">
+                <label class="form-label">Criticidade:</label>
+                <select name="criticidade" id="criticidade" class="form-select">
+                    <option value="">-- Selecione --</option>
+                    <option value="critico">Crítico</option>
+                    <option value="semi-critico">Semi-crítico</option>
+                    <option value="nao critico">Não crítico</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Portas:</label>
+                    <select name="portas" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Teto:</label>
+                    <select name="teto" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Paredes:</label>
+                    <select name="paredes" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Janelas:</label>
+                    <select name="janelas" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Piso:</label>
+                    <select name="piso" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Superfície/Mobiliário:</label>
+                    <select name="superficie_mobiliario" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+            </div>
+             <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Dispenser:</label>
+                    <select name="dispenser" class="form-select">
+                        <option value="">-- Selecione --</option>
+                        <option value="S" style="background-color: lightgreen;">SIM</option>
+                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="obs" class="form-label">Observações:</label>
+            <textarea class="form-control" id="obs" name="obs" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Registrar</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function preencherDataHora() {
+        const agora = new Date();
+        document.getElementById("data").value = agora.toISOString().split('T')[0];
+        const horas = String(agora.getHours()).padStart(2, '0');
+        const minutos = String(agora.getMinutes()).padStart(2, '0');
+        document.getElementById("hora_limpeza").value = `${horas}:${minutos}`;
+    }
+
+    function toggleCamposTerminal() {
+        const tipoLimpeza = document.getElementById("tipo_limpeza").value;
+        const camposTerminal = document.getElementById("camposTerminal");
+        const criticidade = document.getElementById("criticidade");
+
+        if (tipoLimpeza === "terminal") {
+            camposTerminal.style.display = "block";
+            criticidade.setAttribute("required", "required");
+        } else {
+            camposTerminal.style.display = "none";
+            criticidade.removeAttribute("required");
+        }
+    }
+
+    window.onload = () => {
+        preencherDataHora();
+        document.getElementById("tipo_limpeza").addEventListener("change", toggleCamposTerminal);
+        toggleCamposTerminal();
+    };
+</script>
+{% endblock %}
