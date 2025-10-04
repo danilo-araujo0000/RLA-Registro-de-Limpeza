@@ -2,8 +2,10 @@ import os
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import oracledb
 from django.utils import timezone
+from datetime import datetime, timedelta
 import json
 
 try:
@@ -371,3 +373,240 @@ def historico_view(request, sala_id):
         'has_more': has_more,
         'offset': offset + len(registros)
     })
+
+def login_relatorio_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        if username == 'admin' and password == 'hgn':
+            request.session['relatorio_autenticado'] = True
+            return redirect('relatorio_view')
+        else:
+            return render(request, 'login_relatorio.html', {'erro': 'Usuário ou senha incorretos'})
+
+    return render(request, 'login_relatorio.html')
+
+def relatorio_view(request):
+    if not request.session.get('relatorio_autenticado'):
+        return redirect('login_relatorio_view')
+
+    conn = None
+    cursor = None
+    registros = []
+    setores = set()
+
+    try:
+        conn = get_oracle_connection()
+        cursor = conn.cursor()
+
+        data_inicio_param = request.GET.get('data_inicio')
+        data_fim_param = request.GET.get('data_fim')
+
+        if data_inicio_param:
+            data_inicio = datetime.strptime(data_inicio_param, '%Y-%m-%d')
+        else:
+            data_inicio = datetime.now() - timedelta(days=30)
+
+        query_params = {'data_inicio': data_inicio}
+        where_clause = "WHERE r.data_limpeza >= :data_inicio"
+
+        if data_fim_param:
+            data_fim = datetime.strptime(data_fim_param, '%Y-%m-%d')
+            where_clause += " AND r.data_limpeza <= :data_fim"
+            query_params['data_fim'] = data_fim
+
+        query = f"""
+            SELECT
+                r.id_registro, r.colaborador, r.data_limpeza, r.hora_limpeza,
+                r.tipo_limpeza, r.obs, r.criticidade,
+                s.nome_sala, st.nome_setor,
+                r.portas, r.teto, r.paredes, r.janelas, r.piso,
+                r.superficie_mobiliario, r.dispenser
+            FROM if_tbl_registro_higiene r
+            JOIN if_tbl_sala_higiene s ON r.id_sala = s.id_sala
+            JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
+            {where_clause}
+            ORDER BY r.data_limpeza DESC, r.hora_limpeza DESC
+        """
+        cursor.execute(query, query_params)
+        results = cursor.fetchall()
+
+        for row in results:
+            setores.add(row[8])
+            registros.append({
+                'id_registro': row[0],
+                'colaborador': row[1],
+                'data_limpeza': row[2],
+                'hora_limpeza': row[3],
+                'tipo_limpeza': row[4],
+                'obs': row[5],
+                'criticidade': row[6],
+                'nome_sala': row[7],
+                'nome_setor': row[8],
+                'portas': row[9],
+                'teto': row[10],
+                'paredes': row[11],
+                'janelas': row[12],
+                'piso': row[13],
+                'superficie_mobiliario': row[14],
+                'dispenser': row[15],
+            })
+
+    except oracledb.Error as e:
+        error_obj, = e.args
+        return render(request, 'error.html', {'message': f"Erro de banco de dados: {error_obj.message}"})
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+    return render(request, 'relatorio.html', {
+        'registros': registros,
+        'setores': sorted(setores)
+    })
+
+@csrf_exempt
+def atualizar_registro_view(request, registro_id):
+    if request.method == 'POST':
+        conn = None
+        cursor = None
+
+        try:
+            data = json.loads(request.body)
+            field = data.get('field')
+            value = data.get('value')
+
+            print(f"DEBUG - Campo: {field}, Valor recebido: '{value}', Tipo: {type(value)}")
+
+            # Validar campo permitido
+            allowed_fields = [
+                'colaborador', 'obs', 'data_limpeza', 'hora_limpeza',
+                'tipo_limpeza', 'criticidade', 'portas', 'teto',
+                'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'
+            ]
+            if field not in allowed_fields:
+                return JsonResponse({'error': 'Campo não permitido'}, status=400)
+
+            conn = get_oracle_connection()
+            cursor = conn.cursor()
+
+            # Processar valor baseado no campo
+            if value == '' or value == 'null' or value is None:
+                value = None
+            elif field == 'data_limpeza' and value:
+                try:
+                    # Oracle espera formato DD-MON-YY ou TO_DATE
+                    date_obj = datetime.strptime(value, '%Y-%m-%d')
+                    value = date_obj
+                except Exception as e:
+                    print(f"Erro ao converter data: {e}")
+                    return JsonResponse({'error': 'Formato de data inválido'}, status=400)
+
+            # Usar TO_DATE para campo de data
+            if field == 'data_limpeza':
+                query = "UPDATE if_tbl_registro_higiene SET DATA_LIMPEZA = :value WHERE id_registro = :id"
+            else:
+                query = f"UPDATE if_tbl_registro_higiene SET {field.upper()} = :value WHERE id_registro = :id"
+
+            cursor.execute(query, {'value': value, 'id': registro_id})
+            conn.commit()
+
+            return JsonResponse({'success': True})
+
+        except oracledb.Error as e:
+            error_obj, = e.args
+            print(f"Erro Oracle: {error_obj.message}")
+            return JsonResponse({'error': error_obj.message}, status=500)
+        except Exception as e:
+            print(f"Erro geral: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+@csrf_exempt
+def excluir_registro_view(request, registro_id):
+    if request.method == 'POST':
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_oracle_connection()
+            cursor = conn.cursor()
+
+            query = "DELETE FROM if_tbl_registro_higiene WHERE id_registro = :id"
+            cursor.execute(query, {'id': registro_id})
+            conn.commit()
+
+            return JsonResponse({'success': True})
+
+        except oracledb.Error as e:
+            error_obj, = e.args
+            print(f"Erro Oracle ao excluir: {error_obj.message}")
+            return JsonResponse({'error': error_obj.message}, status=500)
+        except Exception as e:
+            print(f"Erro geral ao excluir: {str(e)}")
+            return JsonResponse({'error': str(e)}, status=500)
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+@csrf_exempt
+def obter_registro_view(request, registro_id):
+    if request.method == 'GET':
+        conn = None
+        cursor = None
+
+        try:
+            conn = get_oracle_connection()
+            cursor = conn.cursor()
+
+            query = """
+                SELECT colaborador, data_limpeza, hora_limpeza, tipo_limpeza,
+                       criticidade, portas, teto, paredes, janelas, piso,
+                       superficie_mobiliario, dispenser, obs
+                FROM if_tbl_registro_higiene
+                WHERE id_registro = :id
+            """
+            cursor.execute(query, {'id': registro_id})
+            result = cursor.fetchone()
+
+            if result:
+                return JsonResponse({
+                    'colaborador': result[0],
+                    'data_limpeza': result[1].strftime('%Y-%m-%d') if result[1] else '',
+                    'hora_limpeza': result[2],
+                    'tipo_limpeza': result[3],
+                    'criticidade': result[4] or 'nao-critico',
+                    'portas': result[5] or 'NA',
+                    'teto': result[6] or 'NA',
+                    'paredes': result[7] or 'NA',
+                    'janelas': result[8] or 'NA',
+                    'piso': result[9] or 'NA',
+                    'superficie_mobiliario': result[10] or 'NA',
+                    'dispenser': result[11] or 'NA',
+                    'obs': result[12] or ''
+                })
+            else:
+                return JsonResponse({'error': 'Registro não encontrado'}, status=404)
+
+        except oracledb.Error as e:
+            error_obj, = e.args
+            return JsonResponse({'error': error_obj.message}, status=500)
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+
+    return JsonResponse({'error': 'Método não permitido'}, status=405)

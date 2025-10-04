@@ -3,13 +3,37 @@
 {% block title %}Registro de Limpeza{% endblock %}
 
 {% block style %}
-.card { 
-    background-color: #fff; 
-    padding: 35px; 
-    border-radius: 10px; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); 
+.card {
+    background-color: #fff;
+    padding: 35px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #dee2e6;
 }
-#camposTerminal { display: none; }
+#camposTerminal {
+    display: none;
+    border: 1px solid #dee2e6;
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+.option-sim { background-color: #d4edda !important; color: #155724 !important; }
+.option-nao { background-color: #f8d7da !important; color: #721c24 !important; }
+.option-neutra { background-color: #e9ecef !important; color: #212529 !important; }
+.option-critico { background-color: #f8d7da !important; color: #721c24 !important; }
+.option-semi-critico { background-color: #fff3cd !important; color: #856404 !important; }
+.option-nao-critico { background-color: #cce5ff !important; color: #004085 !important; }
+
+.form-select.option-sim { background-color: #d4edda; color: #155724; }
+.form-select.option-nao { background-color: #f8d7da; color: #721c24; }
+.form-select.option-neutra { background-color: #e9ecef; color: #212529; }
+.form-select.option-critico { background-color: #f8d7da; color: #721c24; }
+.form-select.option-semi-critico { background-color: #fff3cd; color: #856404; }
+.form-select.option-nao-critico { background-color: #cce5ff; color: #004085; }
+
+.row-spacing {
+    margin-bottom: 15px;
+}
 {% endblock %}
 
 {% block content %}
@@ -60,65 +84,65 @@
         </div>
 
         <div id="camposTerminal">
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label">Criticidade:</label>
                 <select name="criticidade" id="criticidade" class="form-select">
-                    <option value="">-- Selecione --</option>
-                    <option value="critico">Crítico</option>
-                    <option value="semi-critico">Semi-crítico</option>
-                    <option value="nao critico">Não crítico</option>
+                    <option value="" disabled selected hidden>Selecionar</option>
+                    <option value="nao-critico" class="option-nao-critico">Não crítico</option>
+                    <option value="semi-critico" class="option-semi-critico">Semi-crítico</option>
+                    <option value="critico" class="option-critico">Crítico</option>
                 </select>
             </div>
 
-            <div class="row">
+            <div class="row row-spacing">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Portas:</label>
                     <select name="portas" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Teto:</label>
                     <select name="teto" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Paredes:</label>
                     <select name="paredes" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
             </div>
-            <div class="row">
+            <div class="row row-spacing">
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Janelas:</label>
                     <select name="janelas" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Piso:</label>
                     <select name="piso" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Superfície/Mobiliário:</label>
                     <select name="superficie_mobiliario" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
             </div>
@@ -126,9 +150,9 @@
                 <div class="col-md-4 mb-3">
                     <label class="form-label">Dispenser:</label>
                     <select name="dispenser" class="form-select">
-                        <option value="">-- Selecione --</option>
-                        <option value="S" style="background-color: lightgreen;">SIM</option>
-                        <option value="N" style="background-color: lightcoral;">NÃO</option>
+                        <option value="" disabled selected hidden>Selecionar</option>
+                        <option value="S" class="option-sim">SIM</option>
+                        <option value="N" class="option-nao">NÃO</option>
                     </select>
                 </div>
             </div>
@@ -139,7 +163,9 @@
             <textarea class="form-control" id="obs" name="obs" rows="3"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-success w-100">Registrar</button>
+        <button type="submit" class="btn btn-success w-100">
+            <i class="fas fa-check"></i> Registrar
+        </button>
     </form>
 </div>
 {% endblock %}
@@ -157,14 +183,31 @@
     function toggleCamposTerminal() {
         const tipoLimpeza = document.getElementById("tipo_limpeza").value;
         const camposTerminal = document.getElementById("camposTerminal");
-        const criticidade = document.getElementById("criticidade");
+        const selects = camposTerminal.querySelectorAll('select');
 
         if (tipoLimpeza === "terminal") {
             camposTerminal.style.display = "block";
-            criticidade.setAttribute("required", "required");
+            selects.forEach(select => select.setAttribute("required", "required"));
         } else {
             camposTerminal.style.display = "none";
-            criticidade.removeAttribute("required");
+            selects.forEach(select => select.removeAttribute("required"));
+        }
+    }
+
+    function updateSelectColor(selectElement) {
+        selectElement.classList.remove('option-sim', 'option-nao', 'option-neutra', 'option-critico', 'option-semi-critico', 'option-nao-critico');
+        if (selectElement.value === 'S') {
+            selectElement.classList.add('option-sim');
+        } else if (selectElement.value === 'N') {
+            selectElement.classList.add('option-nao');
+        } else if (selectElement.value === 'critico') {
+            selectElement.classList.add('option-critico');
+        } else if (selectElement.value === 'semi-critico') {
+            selectElement.classList.add('option-semi-critico');
+        } else if (selectElement.value === 'nao-critico') {
+            selectElement.classList.add('option-nao-critico');
+        } else {
+            selectElement.classList.add('option-neutra');
         }
     }
 
@@ -172,6 +215,12 @@
         preencherDataHora();
         document.getElementById("tipo_limpeza").addEventListener("change", toggleCamposTerminal);
         toggleCamposTerminal();
+
+        const terminalSelects = document.querySelectorAll('#camposTerminal .form-select');
+        terminalSelects.forEach(select => {
+            updateSelectColor(select);
+            select.addEventListener('change', () => updateSelectColor(select));
+        });
     };
 </script>
 {% endblock %}

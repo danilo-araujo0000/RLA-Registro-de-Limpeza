@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Relatório{% endblock %}
+
+{% block style %}
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+}
+.card {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.login-title {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #495057;
+}
+.alert {
+    margin-bottom: 20px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="card">
+        <h2 class="login-title">
+        </h2>
+
+        {% if erro %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ erro }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login_relatorio_view' %}">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i> Usuário
+                </label>
+                <input type="text" class="form-control" id="username" name="username" required autofocus>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-key"></i> Senha
+                </label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-sign-in-alt"></i> Entrar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

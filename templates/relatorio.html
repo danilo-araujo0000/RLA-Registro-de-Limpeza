@@ -1,0 +1,625 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório de Limpeza{% endblock %}
+
+{% block style %}
+.container {
+    max-width: 98% !important;
+}
+.card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+.table-container {
+    overflow-x: auto;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+.table {
+    font-size: 0.95rem;
+    margin-bottom: 0;
+    border-collapse: collapse;
+}
+.table th {
+    background-color: #495057;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    padding: 12px;
+    border: 1px solid #6c757d !important;
+}
+.table td {
+    padding: 12px 8px;
+    vertical-align: middle;
+    border: 1px solid #dee2e6 !important;
+}
+.table tbody tr {
+    border-bottom: 2px solid #e9ecef;
+}
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+.btn-delete {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+.obs-cell {
+    max-width: 200px;
+    width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+.obs-cell:hover {
+    background-color: #fff3cd !important;
+}
+.badge-terminal {
+    background-color: #ffc107;
+    color: #000;
+}
+.badge-concorrente {
+    background-color: #17a2b8;
+    color: #fff;
+}
+.filter-section {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.btn-info-icon {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+.badge-s { background-color: #28a745; color: white; }
+.badge-n { background-color: #dc3545; color: white; }
+.badge-na { background-color: #6c757d; color: white; }
+select.form-select-sm {
+    font-size: 0.85rem;
+    padding: 2px 5px;
+}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <a href="{% url 'salas_view' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="filter-section">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-search"></i> Pesquisar</label>
+                <input type="text" id="searchInput" class="form-control" placeholder="Sala, setor, colaborador...">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-building"></i> Setor</label>
+                <select id="setorFilter" class="form-select">
+                    <option value="">Todos</option>
+                    {% for setor in setores %}
+                    <option value="{{ setor }}">{{ setor }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-broom"></i> Tipo</label>
+                <select id="tipoFilter" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="terminal">Terminal</option>
+                    <option value="concorrente">Concorrente</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-sort"></i> Ordenar por</label>
+                <select id="sortBy" class="form-select">
+                    <option value="data_desc">Data (Mais recente)</option>
+                    <option value="data_asc">Data (Mais antiga)</option>
+                    <option value="sala_asc">Sala (A-Z)</option>
+                    <option value="sala_desc">Sala (Z-A)</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-calendar"></i> Data Início</label>
+                <input type="date" id="dataInicio" class="form-control">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label class="form-label"><i class="fas fa-calendar"></i> Data Fim</label>
+                <input type="date" id="dataFim" class="form-control">
+            </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center">
+            <span id="resultCount" class="text-muted">Total: {{ registros|length }} registros</span>
+            <button id="clearFilters" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-redo"></i> Limpar Filtros
+            </button>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table table-bordered table-hover table-sm">
+            <thead>
+                <tr>
+                    <th style="width: 50px;">ID</th>
+                    <th style="width: 120px;">Setor</th>
+                    <th style="width: 150px;">Sala</th>
+                    <th style="width: 150px;">Colaborador</th>
+                    <th style="width: 110px;">Data</th>
+                    <th style="width: 80px;">Hora</th>
+                    <th style="width: 100px;">Tipo</th>
+                    <th style="width: 120px;">Criticidade</th>
+                    <th style="width: 70px;">Portas</th>
+                    <th style="width: 70px;">Teto</th>
+                    <th style="width: 70px;">Paredes</th>
+                    <th style="width: 70px;">Janelas</th>
+                    <th style="width: 70px;">Piso</th>
+                    <th style="width: 100px;">Superfície</th>
+                    <th style="width: 80px;">Dispenser</th>
+                    <th style="min-width: 200px;">Observações</th>
+                    <th style="width: 80px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% for registro in registros %}
+                <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}" data-data="{{ registro.data_limpeza|date:'Y-m-d' }}" data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
+                    <td>{{ registro.id_registro }}</td>
+                    <td>{{ registro.nome_setor }}</td>
+                    <td><strong>{{ registro.nome_sala }}</strong></td>
+                    <td>{{ registro.colaborador }}</td>
+                    <td>{{ registro.data_limpeza|date:"d/m/Y" }}</td>
+                    <td>{{ registro.hora_limpeza }}</td>
+                    <td>
+                        <span class="badge badge-{{ registro.tipo_limpeza }}">{{ registro.tipo_limpeza|upper }}</span>
+                    </td>
+                    <td>{% if registro.criticidade and registro.criticidade != 'NA' %}{{ registro.criticidade }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if registro.portas and registro.portas != 'NA' %}
+                        <span class="badge badge-{{ registro.portas|lower }}">{{ registro.portas }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.teto and registro.teto != 'NA' %}
+                        <span class="badge badge-{{ registro.teto|lower }}">{{ registro.teto }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.paredes and registro.paredes != 'NA' %}
+                        <span class="badge badge-{{ registro.paredes|lower }}">{{ registro.paredes }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.janelas and registro.janelas != 'NA' %}
+                        <span class="badge badge-{{ registro.janelas|lower }}">{{ registro.janelas }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.piso and registro.piso != 'NA' %}
+                        <span class="badge badge-{{ registro.piso|lower }}">{{ registro.piso }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.superficie_mobiliario and registro.superficie_mobiliario != 'NA' %}
+                        <span class="badge badge-{{ registro.superficie_mobiliario|lower }}">{{ registro.superficie_mobiliario }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td>
+                        {% if registro.dispenser and registro.dispenser != 'NA' %}
+                        <span class="badge badge-{{ registro.dispenser|lower }}">{{ registro.dispenser }}</span>
+                        {% else %}-{% endif %}
+                    </td>
+                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ registro.obs }}">
+                        {{ registro.obs|default:"-" }}
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm btn-info-icon" onclick="abrirModalEdicao({{ registro.id_registro }})">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="17" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal de Edição do Registro -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Editar Registro #<span id="editRegistroId"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Colaborador</label>
+                        <input type="text" id="editColaborador" class="form-control">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Data</label>
+                        <input type="date" id="editData" class="form-control">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Hora</label>
+                        <input type="time" id="editHora" class="form-control">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tipo de Limpeza</label>
+                        <select id="editTipo" class="form-select">
+                            <option value="concorrente">Concorrente</option>
+                            <option value="terminal">Terminal</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="camposTerminalEdit" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="form-label">Criticidade</label>
+                            <select id="editCriticidade" class="form-select">
+                                <option value="nao-critico">Não crítico</option>
+                                <option value="semi-critico">Semi-crítico</option>
+                                <option value="critico">Crítico</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Portas</label>
+                            <select id="editPortas" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Teto</label>
+                            <select id="editTeto" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Paredes</label>
+                            <select id="editParedes" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Janelas</label>
+                            <select id="editJanelas" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Piso</label>
+                            <select id="editPiso" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Superfície/Mobiliário</label>
+                            <select id="editSuperficie" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Dispenser</label>
+                            <select id="editDispenser" class="form-select">
+                                <option value="S">SIM</option>
+                                <option value="N">NÃO</option>
+                                <option value="NA">N/A</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observações</label>
+                    <textarea id="editObs" class="form-control" rows="4"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="btnExcluirModal">
+                    <i class="fas fa-trash"></i> Excluir
+                </button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSalvarEdit">
+                    <i class="fas fa-save"></i> Salvar Alterações
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o registro <strong>#<span id="deleteId"></span></strong>?</p>
+                <p class="text-muted mb-0">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const setorFilter = document.getElementById('setorFilter');
+    const tipoFilter = document.getElementById('tipoFilter');
+    const sortBy = document.getElementById('sortBy');
+    const dataInicio = document.getElementById('dataInicio');
+    const dataFim = document.getElementById('dataFim');
+    const clearFilters = document.getElementById('clearFilters');
+    const tableBody = document.getElementById('tableBody');
+    const resultCount = document.getElementById('resultCount');
+
+    let allRows = Array.from(tableBody.querySelectorAll('tr'));
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('data_inicio')) {
+        dataInicio.value = urlParams.get('data_inicio');
+    } else {
+        const hoje = new Date();
+        const trintaDiasAtras = new Date(hoje);
+        trintaDiasAtras.setDate(hoje.getDate() - 30);
+        dataInicio.value = trintaDiasAtras.toISOString().split('T')[0];
+    }
+    if (urlParams.get('data_fim')) {
+        dataFim.value = urlParams.get('data_fim');
+    } else {
+        const hoje = new Date();
+        dataFim.value = hoje.toISOString().split('T')[0];
+    }
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedSetor = setorFilter.value;
+        const selectedTipo = tipoFilter.value;
+
+        let visibleCount = 0;
+
+        allRows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const setor = row.dataset.setor;
+            const tipo = row.dataset.tipo;
+
+            const matchSearch = text.includes(searchTerm);
+            const matchSetor = !selectedSetor || setor === selectedSetor;
+            const matchTipo = !selectedTipo || tipo === selectedTipo;
+
+            if (matchSearch && matchSetor && matchTipo) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        resultCount.textContent = `Total: ${visibleCount} registros`;
+    }
+
+    function sortTable() {
+        const sortValue = sortBy.value;
+
+        allRows.sort((a, b) => {
+            if (sortValue === 'data_desc') {
+                return b.dataset.data.localeCompare(a.dataset.data);
+            } else if (sortValue === 'data_asc') {
+                return a.dataset.data.localeCompare(b.dataset.data);
+            } else if (sortValue === 'sala_asc') {
+                return a.dataset.sala.localeCompare(b.dataset.sala);
+            } else if (sortValue === 'sala_desc') {
+                return b.dataset.sala.localeCompare(a.dataset.sala);
+            }
+        });
+
+        allRows.forEach(row => tableBody.appendChild(row));
+        applyFilters();
+    }
+
+    searchInput.addEventListener('input', applyFilters);
+    setorFilter.addEventListener('change', applyFilters);
+    tipoFilter.addEventListener('change', applyFilters);
+    dataInicio.addEventListener('change', function() {
+        const params = new URLSearchParams(window.location.search);
+        if (dataInicio.value) {
+            params.set('data_inicio', dataInicio.value);
+        } else {
+            params.delete('data_inicio');
+        }
+        if (dataFim.value) {
+            params.set('data_fim', dataFim.value);
+        }
+        window.location.search = params.toString();
+    });
+    dataFim.addEventListener('change', function() {
+        const params = new URLSearchParams(window.location.search);
+        if (dataFim.value) {
+            params.set('data_fim', dataFim.value);
+        } else {
+            params.delete('data_fim');
+        }
+        if (dataInicio.value) {
+            params.set('data_inicio', dataInicio.value);
+        }
+        window.location.search = params.toString();
+    });
+    sortBy.addEventListener('change', sortTable);
+
+    clearFilters.addEventListener('click', () => {
+        window.location.href = window.location.pathname;
+    });
+
+    const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    let currentEditId = null;
+
+    function toggleCamposTerminalEdit() {
+        const tipoLimpeza = document.getElementById('editTipo').value;
+        const camposTerminalEdit = document.getElementById('camposTerminalEdit');
+
+        if (tipoLimpeza === 'terminal') {
+            camposTerminalEdit.style.display = 'block';
+        } else {
+            camposTerminalEdit.style.display = 'none';
+        }
+    }
+
+    function abrirModalEdicao(id) {
+        currentEditId = id;
+        document.getElementById('editRegistroId').textContent = id;
+
+        fetch(`/obter-registro/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('editColaborador').value = data.colaborador || '';
+                document.getElementById('editData').value = data.data_limpeza || '';
+                document.getElementById('editHora').value = data.hora_limpeza || '';
+                document.getElementById('editTipo').value = data.tipo_limpeza || 'concorrente';
+                document.getElementById('editCriticidade').value = data.criticidade || 'nao-critico';
+                document.getElementById('editPortas').value = data.portas || 'NA';
+                document.getElementById('editTeto').value = data.teto || 'NA';
+                document.getElementById('editParedes').value = data.paredes || 'NA';
+                document.getElementById('editJanelas').value = data.janelas || 'NA';
+                document.getElementById('editPiso').value = data.piso || 'NA';
+                document.getElementById('editSuperficie').value = data.superficie_mobiliario || 'NA';
+                document.getElementById('editDispenser').value = data.dispenser || 'NA';
+                document.getElementById('editObs').value = data.obs || '';
+
+                toggleCamposTerminalEdit();
+                editModal.show();
+            })
+            .catch(() => {
+                alert('Erro ao carregar dados do registro');
+            });
+    }
+
+    document.getElementById('editTipo').addEventListener('change', toggleCamposTerminalEdit);
+
+    document.getElementById('btnSalvarEdit').addEventListener('click', function() {
+        if (!currentEditId) return;
+
+        const updates = {
+            colaborador: document.getElementById('editColaborador').value.trim(),
+            data_limpeza: document.getElementById('editData').value,
+            hora_limpeza: document.getElementById('editHora').value,
+            tipo_limpeza: document.getElementById('editTipo').value,
+            criticidade: document.getElementById('editCriticidade').value,
+            portas: document.getElementById('editPortas').value,
+            teto: document.getElementById('editTeto').value,
+            paredes: document.getElementById('editParedes').value,
+            janelas: document.getElementById('editJanelas').value,
+            piso: document.getElementById('editPiso').value,
+            superficie_mobiliario: document.getElementById('editSuperficie').value,
+            dispenser: document.getElementById('editDispenser').value,
+            obs: document.getElementById('editObs').value.trim()
+        };
+
+        const updatePromises = Object.entries(updates).map(([field, value]) => {
+            return fetch(`/atualizar-registro/${currentEditId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    field: field,
+                    value: value || null
+                })
+            });
+        });
+
+        Promise.all(updatePromises)
+            .then(responses => {
+                const allOk = responses.every(r => r.ok);
+                if (allOk) {
+                    editModal.hide();
+                    location.reload();
+                } else {
+                    alert('Erro ao salvar algumas alterações');
+                }
+            })
+            .catch(() => {
+                alert('Erro de conexão ao salvar');
+            });
+    });
+
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+
+    document.getElementById('btnExcluirModal').addEventListener('click', function() {
+        if (!currentEditId) return;
+
+        document.getElementById('deleteId').textContent = currentEditId;
+        deleteModal.show();
+    });
+
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+        const idToDelete = currentEditId;
+
+        fetch(`/excluir-registro/${idToDelete}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        }).then(response => {
+            if (response.ok) {
+                deleteModal.hide();
+                editModal.hide();
+
+                const row = document.querySelector(`tr[data-registro-id="${idToDelete}"]`);
+                if (row) {
+                    row.remove();
+                    allRows = Array.from(tableBody.querySelectorAll('tr'));
+                    applyFilters();
+                }
+            } else {
+                alert('Erro ao excluir registro');
+            }
+        }).catch(() => {
+            alert('Erro de conexão');
+        });
+    });
+</script>
+{% endblock %}
