@@ -1,8 +1,11 @@
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
+load_dotenv()  
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-0ta@np1ibd_m!!oa4xeu(t7)z^%(uih=m#(hige35trap$dlqs'
+SECRET_KEY = os.environ['SECRET_KEY']
 
 DEBUG = True
 
@@ -54,9 +57,9 @@ DATABASES = {
     },
     'oracle': {
         'ENGINE': 'django.db.backends.oracle',
-        'NAME': '172.19.0.250:1521/prdamevo',
-        'USER': 'dbasistemas',
-        'PASSWORD': 'dbasistemas',
+        'NAME': os.environ['DB_NAME'],
+        'USER': os.environ['DB_USER'],
+        'PASSWORD': os.environ['DB_PASSWORD'],
     }
 }
 
