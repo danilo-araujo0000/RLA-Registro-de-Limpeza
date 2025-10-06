@@ -198,7 +198,6 @@ def salas_view(request):
         results = cursor.fetchall()
 
         for row in results:
-            # Usar ID_SETOR para cor fixa
             id_setor = row[3]
             salas.append({
                 'id_sala': row[0],
@@ -224,14 +223,13 @@ def historico_view(request, sala_id):
     sala_data = None
     registros = []
     offset = int(request.GET.get('offset', 0))
-    limit = 8  # 1 destaque + 7 registros
+    limit = 8
     is_ajax = request.GET.get('ajax', '0') == '1'
 
     try:
         conn = get_oracle_connection()
         cursor = conn.cursor()
 
-        # Buscar dados da sala
         if not is_ajax:
             query_sala = """
                 SELECT s.nome_sala, st.nome_setor
@@ -251,7 +249,6 @@ def historico_view(request, sala_id):
             else:
                 return render(request, 'error.html', {'message': 'Sala não encontrada!'})
 
-        # Buscar registros de limpeza
         query_registros = """
             SELECT * FROM (
                 SELECT
@@ -285,7 +282,6 @@ def historico_view(request, sala_id):
                 'criticidade': row[13],
             })
 
-        # Verificar se há mais registros
         query_count = """
             SELECT COUNT(*) FROM if_tbl_registro_higiene WHERE id_sala = :id_sala
         """
@@ -293,7 +289,6 @@ def historico_view(request, sala_id):
         total = cursor.fetchone()[0]
         has_more = (offset + limit) < total
 
-        # Se for requisição AJAX, retornar JSON
         if is_ajax:
             html_registros = ""
             for i, registro in enumerate(registros):
@@ -478,9 +473,6 @@ def atualizar_registro_view(request, registro_id):
             field = data.get('field')
             value = data.get('value')
 
-            print(f"DEBUG - Campo: {field}, Valor recebido: '{value}', Tipo: {type(value)}")
-
-            # Validar campo permitido
             allowed_fields = [
                 'colaborador', 'obs', 'data_limpeza', 'hora_limpeza',
                 'tipo_limpeza', 'criticidade', 'portas', 'teto',
@@ -492,19 +484,15 @@ def atualizar_registro_view(request, registro_id):
             conn = get_oracle_connection()
             cursor = conn.cursor()
 
-            # Processar valor baseado no campo
             if value == '' or value == 'null' or value is None:
                 value = None
             elif field == 'data_limpeza' and value:
                 try:
-                    # Oracle espera formato DD-MON-YY ou TO_DATE
                     date_obj = datetime.strptime(value, '%Y-%m-%d')
                     value = date_obj
                 except Exception as e:
-                    print(f"Erro ao converter data: {e}")
                     return JsonResponse({'error': 'Formato de data inválido'}, status=400)
 
-            # Usar TO_DATE para campo de data
             if field == 'data_limpeza':
                 query = "UPDATE if_tbl_registro_higiene SET DATA_LIMPEZA = :value WHERE id_registro = :id"
             else:
@@ -517,10 +505,8 @@ def atualizar_registro_view(request, registro_id):
 
         except oracledb.Error as e:
             error_obj, = e.args
-            print(f"Erro Oracle: {error_obj.message}")
             return JsonResponse({'error': error_obj.message}, status=500)
         except Exception as e:
-            print(f"Erro geral: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
         finally:
             if cursor:
@@ -548,10 +534,8 @@ def excluir_registro_view(request, registro_id):
 
         except oracledb.Error as e:
             error_obj, = e.args
-            print(f"Erro Oracle ao excluir: {error_obj.message}")
             return JsonResponse({'error': error_obj.message}, status=500)
         except Exception as e:
-            print(f"Erro geral ao excluir: {str(e)}")
             return JsonResponse({'error': str(e)}, status=500)
         finally:
             if cursor:

@@ -74,7 +74,6 @@
 					</select>
 				</div>
 				
-				<!-- Campos adicionais para Terminal -->
 				<div id="camposTerminal">
 					<div class="mb-3">
 						<label class="form-label">Criticidade:</label>
@@ -168,10 +167,8 @@
 			function preencherDataHora() {
 				const agora = new Date();
 				
-				// Preenche o campo de data com o formato YYYY-MM-DD
 				document.getElementById("data").value = agora.toISOString().split('T')[0];
 				
-				// Preenche o campo de hora com o formato HH:MM
 				const horas = String(agora.getHours()).padStart(2, '0');
 				const minutos = String(agora.getMinutes()).padStart(2, '0');
 				document.getElementById("hora_limpeza").value = `${horas}:${minutos}`;
@@ -197,9 +194,9 @@
 			}
 			
 			window.onload = () => {
-				preencherDataHora(); // Preenche automaticamente os campos de data e hora
+				preencherDataHora();
 				document.getElementById("tipo_limpeza").addEventListener("change", toggleCamposTerminal);
-				toggleCamposTerminal(); // Garante que os campos sejam mostrados ou escondidos corretamente
+				toggleCamposTerminal();
 			};
 		</script>
 	</body>
