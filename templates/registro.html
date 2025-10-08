@@ -34,6 +34,182 @@
 .row-spacing {
     margin-bottom: 15px;
 }
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    height: 250px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: none;
+}
+
+.autocomplete-list li {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.autocomplete-list li:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-list li:hover {
+    background-color: #f8f9fa;
+}
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.modal-overlay.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 25px 30px;
+    border-bottom: 2px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    flex: 0 0 auto;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 40px;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.btn-close-modal:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fff;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-footer {
+    padding: 25px 30px;
+    border-top: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    flex: 0 0 auto;
+}
+
+.item-limpeza {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 30px;
+    border-bottom: 2px solid #f1f1f1;
+    background-color: #fff;
+    transition: background-color 0.2s;
+}
+
+.item-limpeza:hover {
+    background-color: #f8f9fa;
+}
+
+.item-limpeza:last-child {
+    border-bottom: none;
+}
+
+.item-label {
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    font-size: 20px;
+    flex: 1;
+}
+
+.item-opcoes {
+    display: flex;
+    gap: 30px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    margin: 0;
+    font-size: 18px;
+}
+
+.radio-label input[type="radio"] {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"]:checked {
+    accent-color: #28a745;
+}
+
+.item-limpeza.erro {
+    background-color: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.item-limpeza.completo {
+    background-color: #d4edda;
+    border-left: 4px solid #28a745;
+}
 {% endblock %}
 
 {% block content %}
@@ -55,13 +231,17 @@
         <input type="text" class="form-control" value="{{ sala.nome_sala }}" disabled>
     </div>
 
-    <form action="{% url 'salvar_registro_view' %}" method="POST">
+    <form action="{% url 'salvar_registro_view' %}" method="POST" id="formRegistro">
         {% csrf_token %}
         <input type="hidden" name="id_sala" value="{{ sala.id_sala }}">
 
         <div class="mb-3">
             <label class="form-label">Colaborador:</label>
-            <input type="text" name="colaborador" class="form-control" required>
+            <div style="position: relative;">
+                <input type="text" name="colaborador" id="colaborador" class="form-control" autocomplete="off" required>
+                <input type="hidden" name="colaborador_primeiro_nome" id="colaborador_primeiro_nome">
+                <ul id="colaborador-list" class="autocomplete-list"></ul>
+            </div>
         </div>
 
         <div class="row">
@@ -78,8 +258,8 @@
         <div class="mb-3">
             <label class="form-label">Tipo de Limpeza:</label>
             <select name="tipo_limpeza" id="tipo_limpeza" class="form-select" required>
-                <option value="concorrente">Concorrente</option>
-                <option value="terminal">Terminal</option>
+                <option value="1">Concorrente</option>
+                <option value="2">Terminal</option>
             </select>
         </div>
 
@@ -88,72 +268,208 @@
                 <label class="form-label">Criticidade:</label>
                 <select name="criticidade" id="criticidade" class="form-select">
                     <option value="" disabled selected hidden>Selecionar</option>
-                    <option value="nao-critico" class="option-nao-critico">Não crítico</option>
-                    <option value="semi-critico" class="option-semi-critico">Semi-crítico</option>
-                    <option value="critico" class="option-critico">Crítico</option>
+                    <option value="1" class="option-critico">Crítico</option>
+                    <option value="2" class="option-semi-critico">Semi-crítico</option>
+                    <option value="3" class="option-nao-critico">Não crítico</option>
                 </select>
             </div>
 
-            <div class="row row-spacing">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Portas:</label>
-                    <select name="portas" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary w-100" id="btnAbrirModal">
+                    <i class="fas fa-list-check"></i> Selecionar Itens de Limpeza
+                    <span id="contadorItens" style="display: none; margin-left: 10px; background: #28a745; padding: 3px 8px; border-radius: 12px; font-size: 12px;"></span>
+                </button>
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-success w-100" id="btnAbrirModalReposicao">
+                    <i class="fas fa-box"></i> REPOSIÇÃO
+                    <span id="contadorReposicao" style="display: none; margin-left: 10px; background: #28a745; padding: 3px 8px; border-radius: 12px; font-size: 12px;"></span>
+                </button>
+            </div>
+
+            <!-- Campos hidden para enviar os dados -->
+            <input type="hidden" name="portas" id="portas_hidden" value="">
+            <input type="hidden" name="teto" id="teto_hidden" value="">
+            <input type="hidden" name="paredes" id="paredes_hidden" value="">
+            <input type="hidden" name="janelas" id="janelas_hidden" value="">
+            <input type="hidden" name="piso" id="piso_hidden" value="">
+            <input type="hidden" name="superficie_mobiliario" id="superficie_mobiliario_hidden" value="">
+            <input type="hidden" name="dispenser" id="dispenser_hidden" value="">
+
+            <!-- Campo de validação para itens de limpeza -->
+            <input type="text" id="validacao_itens_limpeza" style="position: absolute; opacity: 0; pointer-events: none;" tabindex="-1">
+
+            <!-- Campos hidden para reposição -->
+            <input type="hidden" name="papel_hig" id="papel_hig_hidden" value="">
+            <input type="hidden" name="papel_toalha" id="papel_toalha_hidden" value="">
+            <input type="hidden" name="alcool" id="alcool_hidden" value="">
+            <input type="hidden" name="sabonete" id="sabonete_hidden" value="">
+
+            <!-- Campo de validação para reposição -->
+            <input type="text" id="validacao_reposicao" style="position: absolute; opacity: 0; pointer-events: none;" tabindex="-1">
+        </div>
+
+        <!-- Modal de Itens de Limpeza -->
+        <div id="modalItensLimpeza" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Itens de Limpeza Terminal</h3>
+                    <button type="button" class="btn-close-modal" id="btnFecharModal">&times;</button>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Teto:</label>
-                    <select name="teto" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+                <div class="modal-body">
+                    <div class="item-limpeza">
+                        <label class="item-label">Portas</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_portas" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_portas" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Teto</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_teto" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_teto" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Paredes</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_paredes" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_paredes" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Janelas</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_janelas" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_janelas" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Piso</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_piso" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_piso" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Superfície/Mobiliário</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_superficie_mobiliario" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_superficie_mobiliario" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Dispenser</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_dispenser" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_dispenser" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Paredes:</label>
-                    <select name="paredes" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" id="btnConfirmarModal" style="font-size: 20px; padding: 18px;">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
                 </div>
             </div>
-            <div class="row row-spacing">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Janelas:</label>
-                    <select name="janelas" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+        </div>
+
+        <!-- Modal de Reposição -->
+        <div id="modalReposicao" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Itens de Reposição</h3>
+                    <button type="button" class="btn-close-modal" id="btnFecharModalReposicao">&times;</button>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Piso:</label>
-                    <select name="piso" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+                <div class="modal-body">
+                    <div class="item-limpeza">
+                        <label class="item-label">Papel Higiênico</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_papel_hig" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_papel_hig" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Papel Toalha</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_papel_toalha" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_papel_toalha" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Álcool</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_alcool" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_alcool" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="item-limpeza">
+                        <label class="item-label">Sabonete</label>
+                        <div class="item-opcoes">
+                            <label class="radio-label">
+                                <input type="radio" name="modal_sabonete" value="S"> SIM
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="modal_sabonete" value="N"> NÃO
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Superfície/Mobiliário:</label>
-                    <select name="superficie_mobiliario" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
-                </div>
-            </div>
-             <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Dispenser:</label>
-                    <select name="dispenser" class="form-select">
-                        <option value="" disabled selected hidden>Selecionar</option>
-                        <option value="S" class="option-sim">SIM</option>
-                        <option value="N" class="option-nao">NÃO</option>
-                    </select>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" id="btnConfirmarModalReposicao" style="font-size: 20px; padding: 18px;">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
                 </div>
             </div>
         </div>
@@ -172,6 +488,9 @@
 
 {% block scripts %}
 <script>
+    // Lista de todos os colaboradores carregada do backend
+    const todosColaboradores = {{ colaboradores|safe }};
+
     function preencherDataHora() {
         const agora = new Date();
         document.getElementById("data").value = agora.toISOString().split('T')[0];
@@ -183,15 +502,157 @@
     function toggleCamposTerminal() {
         const tipoLimpeza = document.getElementById("tipo_limpeza").value;
         const camposTerminal = document.getElementById("camposTerminal");
-        const selects = camposTerminal.querySelectorAll('select');
+        const criticidade = document.getElementById("criticidade");
 
-        if (tipoLimpeza === "terminal") {
+        if (tipoLimpeza === "2") { // 2 = Terminal
             camposTerminal.style.display = "block";
-            selects.forEach(select => select.setAttribute("required", "required"));
+            criticidade.setAttribute("required", "required");
         } else {
             camposTerminal.style.display = "none";
-            selects.forEach(select => select.removeAttribute("required"));
+            criticidade.removeAttribute("required");
+
+            // Limpar itens do modal ao mudar para concorrente
+            const itens = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
+            itens.forEach(item => {
+                document.getElementById(`${item}_hidden`).value = '';
+                const radios = document.querySelectorAll(`input[name="modal_${item}"]`);
+                radios.forEach(radio => radio.checked = false);
+            });
+
+            // Limpar itens de reposição
+            const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+            itensReposicao.forEach(item => {
+                document.getElementById(`${item}_hidden`).value = '';
+                const radios = document.querySelectorAll(`input[name="modal_${item}"]`);
+                radios.forEach(radio => radio.checked = false);
+            });
+
+            // Esconder contadores
+            document.getElementById('contadorItens').style.display = 'none';
+            document.getElementById('contadorReposicao').style.display = 'none';
         }
+    }
+
+    function abrirModal() {
+        document.getElementById('modalItensLimpeza').classList.add('show');
+        // Remover marcações de erro ao abrir
+        document.querySelectorAll('.item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+    }
+
+    function fecharModal() {
+        document.getElementById('modalItensLimpeza').classList.remove('show');
+        // Limpar marcações ao fechar
+        document.querySelectorAll('.item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+    }
+
+    function confirmarItensLimpeza() {
+        const itens = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
+        let todosPreenchidos = true;
+        const itensNaoPreenchidos = [];
+
+        // Limpar marcações anteriores
+        document.querySelectorAll('#modalItensLimpeza .item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+
+        itens.forEach(item => {
+            const radioSelecionado = document.querySelector(`input[name="modal_${item}"]:checked`);
+            const itemDiv = document.querySelector(`input[name="modal_${item}"]`).closest('.item-limpeza');
+
+            if (radioSelecionado) {
+                document.getElementById(`${item}_hidden`).value = radioSelecionado.value;
+                itemDiv.classList.add('completo');
+            } else {
+                todosPreenchidos = false;
+                itensNaoPreenchidos.push(item);
+                itemDiv.classList.add('erro');
+            }
+        });
+
+        if (!todosPreenchidos) {
+            // Scroll para o primeiro item não preenchido
+            const primeiroErro = document.querySelector('#modalItensLimpeza .item-limpeza.erro');
+            if (primeiroErro) {
+                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        // Atualizar contador no botão
+        const contador = document.getElementById('contadorItens');
+        contador.textContent = `${itens.length}/${itens.length}`;
+        contador.style.display = 'inline';
+
+        // Remover validação
+        const campoValidacao = document.getElementById('validacao_itens_limpeza');
+        campoValidacao.removeAttribute('required');
+        campoValidacao.setCustomValidity('');
+
+        fecharModal();
+    }
+
+    function abrirModalReposicao() {
+        document.getElementById('modalReposicao').classList.add('show');
+        // Remover marcações de erro ao abrir
+        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+    }
+
+    function fecharModalReposicao() {
+        document.getElementById('modalReposicao').classList.remove('show');
+        // Limpar marcações ao fechar
+        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+    }
+
+    function confirmarItensReposicao() {
+        const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+        let todosPreenchidos = true;
+
+        // Limpar marcações anteriores
+        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
+            item.classList.remove('erro', 'completo');
+        });
+
+        itens.forEach(item => {
+            const radioSelecionado = document.querySelector(`input[name="modal_${item}"]:checked`);
+            const itemDiv = document.querySelector(`input[name="modal_${item}"]`).closest('.item-limpeza');
+
+            if (radioSelecionado) {
+                document.getElementById(`${item}_hidden`).value = radioSelecionado.value;
+                itemDiv.classList.add('completo');
+            } else {
+                todosPreenchidos = false;
+                itemDiv.classList.add('erro');
+            }
+        });
+
+        if (!todosPreenchidos) {
+            // Scroll para o primeiro item não preenchido
+            const primeiroErro = document.querySelector('#modalReposicao .item-limpeza.erro');
+            if (primeiroErro) {
+                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        // Atualizar contador no botão
+        const contador = document.getElementById('contadorReposicao');
+        contador.textContent = `${itens.length}/${itens.length}`;
+        contador.style.display = 'inline';
+
+        // Remover validação
+        const campoValidacao = document.getElementById('validacao_reposicao');
+        campoValidacao.removeAttribute('required');
+        campoValidacao.setCustomValidity('');
+
+        fecharModalReposicao();
     }
 
     function updateSelectColor(selectElement) {
@@ -200,15 +661,57 @@
             selectElement.classList.add('option-sim');
         } else if (selectElement.value === 'N') {
             selectElement.classList.add('option-nao');
-        } else if (selectElement.value === 'critico') {
+        } else if (selectElement.value === '1') { // 1 = Crítico
             selectElement.classList.add('option-critico');
-        } else if (selectElement.value === 'semi-critico') {
+        } else if (selectElement.value === '2') { // 2 = Semi-crítico
             selectElement.classList.add('option-semi-critico');
-        } else if (selectElement.value === 'nao-critico') {
+        } else if (selectElement.value === '3') { // 3 = Não crítico
             selectElement.classList.add('option-nao-critico');
         } else {
             selectElement.classList.add('option-neutra');
         }
+    }
+
+    function filtrarColaboradores(termo) {
+        const termoUpper = termo.toUpperCase();
+        let resultados;
+
+        if (termo.length === 0) {
+            resultados = [...todosColaboradores].sort((a, b) =>
+                a.primeiro_nome.localeCompare(b.primeiro_nome)
+            );
+        } else {
+            resultados = todosColaboradores
+                .filter(colab => colab.primeiro_nome.toUpperCase().includes(termoUpper))
+                .sort((a, b) => a.primeiro_nome.localeCompare(b.primeiro_nome));
+        }
+
+        const lista = document.getElementById('colaborador-list');
+        lista.innerHTML = '';
+
+        if (resultados.length > 0) {
+            resultados.forEach(colaborador => {
+                const li = document.createElement('li');
+                li.textContent = colaborador.primeiro_nome;
+                li.dataset.primeiroNome = colaborador.primeiro_nome;
+                li.dataset.nomeCompleto = colaborador.nome_completo;
+                li.addEventListener('click', () => selecionarColaborador(colaborador));
+                lista.appendChild(li);
+            });
+            lista.style.display = 'block';
+        } else {
+            lista.style.display = 'none';
+        }
+    }
+
+    function mostrarTodosColaboradores() {
+        filtrarColaboradores('');
+    }
+
+    function selecionarColaborador(colaborador) {
+        document.getElementById('colaborador').value = colaborador.primeiro_nome;
+        document.getElementById('colaborador_primeiro_nome').value = colaborador.primeiro_nome;
+        document.getElementById('colaborador-list').style.display = 'none';
     }
 
     window.onload = () => {
@@ -220,6 +723,101 @@
         terminalSelects.forEach(select => {
             updateSelectColor(select);
             select.addEventListener('change', () => updateSelectColor(select));
+        });
+
+        const inputColaborador = document.getElementById('colaborador');
+        inputColaborador.addEventListener('input', (e) => {
+            filtrarColaboradores(e.target.value);
+        });
+        inputColaborador.addEventListener('focus', () => {
+            mostrarTodosColaboradores();
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#colaborador') && !e.target.closest('#colaborador-list')) {
+                document.getElementById('colaborador-list').style.display = 'none';
+            }
+        });
+
+        document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
+        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
+        document.getElementById('btnConfirmarModal').addEventListener('click', confirmarItensLimpeza);
+
+        // Event listeners para modal de reposição
+        document.getElementById('btnAbrirModalReposicao').addEventListener('click', abrirModalReposicao);
+        document.getElementById('btnFecharModalReposicao').addEventListener('click', fecharModalReposicao);
+        document.getElementById('btnConfirmarModalReposicao').addEventListener('click', confirmarItensReposicao);
+
+        const radios = document.querySelectorAll('#modalItensLimpeza input[type="radio"]');
+        radios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const itemDiv = radio.closest('.item-limpeza');
+                itemDiv.classList.remove('erro');
+            });
+        });
+
+        const radiosReposicao = document.querySelectorAll('#modalReposicao input[type="radio"]');
+        radiosReposicao.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const itemDiv = radio.closest('.item-limpeza');
+                itemDiv.classList.remove('erro');
+            });
+        });
+
+        document.getElementById('formRegistro').addEventListener('submit', (e) => {
+            const tipoLimpeza = document.getElementById('tipo_limpeza').value;
+
+            if (tipoLimpeza === '2') { // Terminal
+                // Validar itens de limpeza
+                const itensLimpeza = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
+                let itensLimpezaVazio = false;
+
+                itensLimpeza.forEach(item => {
+                    const valor = document.getElementById(`${item}_hidden`).value;
+                    if (!valor || valor === '') {
+                        itensLimpezaVazio = true;
+                    }
+                });
+
+                if (itensLimpezaVazio) {
+                    e.preventDefault();
+                    const campoValidacao = document.getElementById('validacao_itens_limpeza');
+                    campoValidacao.setAttribute('required', 'required');
+                    campoValidacao.setCustomValidity('Por favor, preencha todos os itens de limpeza');
+                    campoValidacao.reportValidity();
+
+                    // Abrir modal automaticamente
+                    setTimeout(() => {
+                        abrirModal();
+                    }, 100);
+                    return false;
+                }
+
+                // Validar itens de reposição
+                const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+                let reposicaoVazio = false;
+
+                itensReposicao.forEach(item => {
+                    const valor = document.getElementById(`${item}_hidden`).value;
+                    if (!valor || valor === '') {
+                        reposicaoVazio = true;
+                    }
+                });
+
+                if (reposicaoVazio) {
+                    e.preventDefault();
+                    const campoValidacao = document.getElementById('validacao_reposicao');
+                    campoValidacao.setAttribute('required', 'required');
+                    campoValidacao.setCustomValidity('Por favor, preencha todos os itens de reposição');
+                    campoValidacao.reportValidity();
+
+                    // Abrir modal automaticamente
+                    setTimeout(() => {
+                        abrirModalReposicao();
+                    }, 100);
+                    return false;
+                }
+            }
         });
     };
 </script>

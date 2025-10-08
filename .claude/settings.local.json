@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py migrate:*)",
+      "Bash(del registromigrations0002_dispositivopermitido.py)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

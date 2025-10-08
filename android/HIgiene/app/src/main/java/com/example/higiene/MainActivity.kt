@@ -3,12 +3,15 @@ package com.example.higiene
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceRequest
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -100,10 +103,12 @@ fun QRCodeScannerApp() {
     var lastScannedUrl by remember { mutableStateOf<String?>(null) }
     var showSettings by remember { mutableStateOf(false) }
 
+    var deviceId by remember { mutableStateOf(prefs.getString("device_id", "") ?: "") }
     var manualUrl by remember { mutableStateOf(prefs.getString("manual_url", "http://172.19.0.0/") ?: "http://172.19.0.0/") }
     var returnUrl by remember { mutableStateOf(prefs.getString("return_url", "") ?: "") }
     var returnDelay by remember { mutableStateOf(prefs.getInt("return_delay", 7)) }
     var showPasswordDialog by remember { mutableStateOf(false) }
+    var showDeviceIdAlert by remember { mutableStateOf(false) }
 
     BlueTheme {
         when {
@@ -118,27 +123,47 @@ fun QRCodeScannerApp() {
             }
             showSettings -> {
                 SettingsScreen(
+                    deviceId = deviceId,
                     manualUrl = manualUrl,
                     returnUrl = returnUrl,
                     returnDelay = returnDelay,
+                    onDeviceIdChange = { deviceId = it },
                     onManualUrlChange = { manualUrl = it },
                     onReturnUrlChange = { returnUrl = it },
                     onReturnDelayChange = { returnDelay = it },
                     onSave = {
+                        val sanitizedDeviceId = deviceId.trim()
+                        val sanitizedManualUrl = manualUrl.trim().ifEmpty { "http://172.19.0.0/" }
+                        val sanitizedReturnUrl = returnUrl.trim()
+
                         prefs.edit().apply {
-                            putString("manual_url", manualUrl)
-                            putString("return_url", returnUrl)
+                            putString("device_id", sanitizedDeviceId)
+                            putString("manual_url", sanitizedManualUrl)
+                            putString("return_url", sanitizedReturnUrl)
                             putInt("return_delay", returnDelay)
                             apply()
                         }
+                        deviceId = sanitizedDeviceId
+                        manualUrl = sanitizedManualUrl
+                        returnUrl = sanitizedReturnUrl
                         showSettings = false
                     },
                     onBack = { showSettings = false }
                 )
             }
+            showDeviceIdAlert -> {
+                DeviceIdDialog(
+                    onGoToSettings = {
+                        showDeviceIdAlert = false
+                        showPasswordDialog = true
+                    },
+                    onDismiss = { showDeviceIdAlert = false }
+                )
+            }
             currentUrl != null -> {
                 WebViewScreen(
                     url = currentUrl!!,
+                    deviceId = deviceId,
                     returnUrl = returnUrl,
                     returnDelay = returnDelay,
                     onBack = {
@@ -171,6 +196,10 @@ fun QRCodeScannerApp() {
                     ) {
                         CameraPreview(
                             onQrCodeDetected = { url ->
+                                if (deviceId.isBlank()) {
+                                    showDeviceIdAlert = true
+                                    return@CameraPreview
+                                }
                                 if (url != lastScannedUrl && isValidUrl(url)) {
                                     lastScannedUrl = url
                                     currentUrl = url
@@ -192,8 +221,22 @@ fun QRCodeScannerApp() {
                                 color = MaterialTheme.colorScheme.onSurface
                             )
 
+                            if (deviceId.isBlank()) {
+                                Text(
+                                    text = "Configure o ID do dispositivo nas configurações antes de continuar.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+
                             Button(
-                                onClick = { currentUrl = manualUrl },
+                                onClick = {
+                                    if (deviceId.isBlank()) {
+                                        showDeviceIdAlert = true
+                                    } else {
+                                        currentUrl = manualUrl
+                                    }
+                                },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("MANUAL")
@@ -259,12 +302,49 @@ fun PasswordDialog(
     )
 }
 
+@Composable
+fun DeviceIdDialog(
+    onGoToSettings: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Configurar ID do Dispositivo") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Defina um ID exclusivo para este aparelho nas configurações. " +
+                           "Sem ele o servidor não autoriza o acesso.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Toque em \"Configurações\" e informe o ID junto com as URLs.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onGoToSettings) {
+                Text("Configurações")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Agora não")
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    deviceId: String,
     manualUrl: String,
     returnUrl: String,
     returnDelay: Int,
+    onDeviceIdChange: (String) -> Unit,
     onManualUrlChange: (String) -> Unit,
     onReturnUrlChange: (String) -> Unit,
     onReturnDelayChange: (Int) -> Unit,
@@ -297,6 +377,15 @@ fun SettingsScreen(
             Text(
                 text = "Configurações",
                 style = MaterialTheme.typography.headlineSmall
+            )
+
+            OutlinedTextField(
+                value = deviceId,
+                onValueChange = onDeviceIdChange,
+                label = { Text("ID do Dispositivo") },
+                placeholder = { Text("Ex: tablet-sala-1") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
             )
 
             OutlinedTextField(
@@ -341,7 +430,7 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WebViewScreen(url: String, returnUrl: String, returnDelay: Int, onBack: () -> Unit) {
+fun WebViewScreen(url: String, deviceId: String, returnUrl: String, returnDelay: Int, onBack: () -> Unit) {
     var webView by remember { mutableStateOf<WebView?>(null) }
 
     BackHandler {
@@ -377,9 +466,41 @@ fun WebViewScreen(url: String, returnUrl: String, returnDelay: Int, onBack: () -
         AndroidView(
             factory = { context ->
                 WebView(context).apply {
+                    val sanitizedDeviceId = deviceId.trim()
+                    val headers = if (sanitizedDeviceId.isNotEmpty()) {
+                        mapOf("X-Device-Id" to sanitizedDeviceId)
+                    } else {
+                        emptyMap()
+                    }
+                    val cookieManager = CookieManager.getInstance()
+                    cookieManager.setAcceptCookie(true)
+
+                    fun setDeviceCookie(targetUrl: String?) {
+                        if (sanitizedDeviceId.isEmpty() || targetUrl.isNullOrBlank()) return
+                        val parsed = runCatching { Uri.parse(targetUrl) }.getOrNull() ?: return
+                        val host = parsed.host ?: return
+                        val scheme = parsed.scheme ?: "http"
+                        val portSuffix = if (parsed.port != -1) ":${parsed.port}" else ""
+                        val baseUrl = "$scheme://$host$portSuffix"
+                        cookieManager.setCookie(baseUrl, "device_id=$sanitizedDeviceId")
+                        cookieManager.flush()
+                    }
+
+                    setDeviceCookie(url)
+
                     webViewClient = object : WebViewClient() {
+                        override fun shouldOverrideUrlLoading(
+                            view: WebView?,
+                            request: WebResourceRequest?
+                        ): Boolean {
+                            val targetUrl = request?.url?.toString()
+                            setDeviceCookie(targetUrl)
+                            return false
+                        }
+
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)
+                            setDeviceCookie(url)
                             url?.let {
                                 if (returnUrl.isNotEmpty() && it.contains(returnUrl, ignoreCase = true)) {
                                     Handler(Looper.getMainLooper()).postDelayed({
@@ -395,7 +516,11 @@ fun WebViewScreen(url: String, returnUrl: String, returnDelay: Int, onBack: () -
                     settings.useWideViewPort = true
                     settings.builtInZoomControls = true
                     settings.displayZoomControls = false
-                    loadUrl(url)
+                    if (headers.isEmpty()) {
+                        loadUrl(url)
+                    } else {
+                        loadUrl(url, headers)
+                    }
                     webView = this
                 }
             },
