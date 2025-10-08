@@ -22,8 +22,8 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +35,8 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -110,6 +112,23 @@ fun QRCodeScannerApp() {
     var showPasswordDialog by remember { mutableStateOf(false) }
     var showDeviceIdAlert by remember { mutableStateOf(false) }
 
+    val openSettings: () -> Unit = { showPasswordDialog = true }
+    val openManual: () -> Unit = {
+        if (deviceId.isBlank()) {
+            showDeviceIdAlert = true
+        } else {
+            currentUrl = manualUrl
+        }
+    }
+    val refreshScanner: () -> Unit = {
+        lastScannedUrl = null
+    }
+
+    val goToScanner: () -> Unit = {
+        currentUrl = null
+        lastScannedUrl = null
+    }
+
     BlueTheme {
         when {
             showPasswordDialog -> {
@@ -169,18 +188,21 @@ fun QRCodeScannerApp() {
                     onBack = {
                         currentUrl = null
                         lastScannedUrl = null
-                    }
+                    },
+                    onHomeClick = { goToScanner() },
+                    onOpenSettings = { openSettings() }
                 )
             }
             else -> {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("Scanear QR Code") },
-                            actions = {
-                                IconButton(onClick = { showPasswordDialog = true }) {
-                                    Icon(Icons.Default.Settings, contentDescription = "Configurações")
-                                }
+                            title = {
+                                TopBarButtons(
+                                    onHomeClick = { goToScanner() },
+                                    onHomeLongClick = { openSettings() },
+                                    onRefreshClick = { refreshScanner() }
+                                )
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -230,13 +252,7 @@ fun QRCodeScannerApp() {
                             }
 
                             Button(
-                                onClick = {
-                                    if (deviceId.isBlank()) {
-                                        showDeviceIdAlert = true
-                                    } else {
-                                        currentUrl = manualUrl
-                                    }
-                                },
+                                onClick = { openManual() },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Text("MANUAL")
@@ -303,6 +319,41 @@ fun PasswordDialog(
 }
 
 @Composable
+fun TopBarButtons(
+    onHomeClick: () -> Unit,
+    onHomeLongClick: () -> Unit,
+    onRefreshClick: () -> Unit
+) {
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Button(
+            onClick = onHomeClick,
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { onHomeLongClick() }
+                )
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ),
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text("HOME")
+        }
+        Button(
+            onClick = onRefreshClick,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondary,
+                contentColor = MaterialTheme.colorScheme.onSecondary
+            ),
+            shape = MaterialTheme.shapes.small
+        ) {
+            Text("Atualizar")
+        }
+    }
+}
+
+@Composable
 fun DeviceIdDialog(
     onGoToSettings: () -> Unit,
     onDismiss: () -> Unit
@@ -355,11 +406,6 @@ fun SettingsScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Configurações") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -430,7 +476,15 @@ fun SettingsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WebViewScreen(url: String, deviceId: String, returnUrl: String, returnDelay: Int, onBack: () -> Unit) {
+fun WebViewScreen(
+    url: String,
+    deviceId: String,
+    returnUrl: String,
+    returnDelay: Int,
+    onBack: () -> Unit,
+    onHomeClick: () -> Unit,
+    onOpenSettings: () -> Unit
+) {
     var webView by remember { mutableStateOf<WebView?>(null) }
 
     BackHandler {
@@ -444,17 +498,15 @@ fun WebViewScreen(url: String, deviceId: String, returnUrl: String, returnDelay:
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pagina Web") },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        if (webView?.canGoBack() == true) {
-                            webView?.goBack()
-                        } else {
-                            onBack()
-                        }
-                    }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Voltar")
-                    }
+                title = {
+                    TopBarButtons(
+                        onHomeClick = {
+                            webView?.stopLoading()
+                            onHomeClick()
+                        },
+                        onHomeLongClick = { onOpenSettings() },
+                        onRefreshClick = { webView?.reload() }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,

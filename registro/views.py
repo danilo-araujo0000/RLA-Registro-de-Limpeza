@@ -537,7 +537,8 @@ def atualizar_registro_view(request, registro_id):
             allowed_fields = [
                 'colaborador', 'obs', 'data_limpeza', 'hora_limpeza',
                 'tipo_limpeza', 'criticidade', 'portas', 'teto',
-                'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'
+                'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser',
+                'papel_hig', 'papel_toalha', 'alcool', 'sabonete'
             ]
             if field not in allowed_fields:
                 return JsonResponse({'error': 'Campo não permitido'}, status=400)
@@ -629,7 +630,8 @@ def obter_registro_view(request, registro_id):
             query = """
                 SELECT colaborador, data_limpeza, hora_limpeza, id_tipo_limpeza,
                        id_criticidade, portas, teto, paredes, janelas, piso,
-                       superficie_mobiliario, dispenser, obs
+                       superficie_mobiliario, dispenser, obs,
+                       papel_hig, papel_toalha, alcool, sabonete
                 FROM if_tbl_registro_higiene
                 WHERE id_registro = :id
             """
@@ -637,13 +639,12 @@ def obter_registro_view(request, registro_id):
             result = cursor.fetchone()
 
             if result:
-                # Converter IDs de volta para valores numéricos (1, 2, 3)
                 return JsonResponse({
                     'colaborador': result[0],
                     'data_limpeza': result[1].strftime('%Y-%m-%d') if result[1] else '',
                     'hora_limpeza': result[2],
-                    'tipo_limpeza': result[3] or 1,  # ID do tipo de limpeza
-                    'criticidade': result[4] or 1,  # ID da criticidade
+                    'tipo_limpeza': result[3],  
+                    'criticidade': result[4] , 
                     'portas': result[5] or 'NA',
                     'teto': result[6] or 'NA',
                     'paredes': result[7] or 'NA',
@@ -651,7 +652,11 @@ def obter_registro_view(request, registro_id):
                     'piso': result[9] or 'NA',
                     'superficie_mobiliario': result[10] or 'NA',
                     'dispenser': result[11] or 'NA',
-                    'obs': result[12] or ''
+                    'obs': result[12] or '',
+                    'papel_hig': result[13] or 'NA',
+                    'papel_toalha': result[14] or 'NA',
+                    'alcool': result[15] or 'NA',
+                    'sabonete': result[16] or 'NA'
                 })
             else:
                 return JsonResponse({'error': 'Registro não encontrado'}, status=404)

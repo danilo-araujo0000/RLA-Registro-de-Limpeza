@@ -30,7 +30,7 @@ class DispositivoPermitidoAdmin(admin.ModelAdmin):
     readonly_fields = ('data_criacao', 'data_atualizacao')
 
     fieldsets = (
-        ('Informa��es do Dispositivo', {
+        ('Informaes do Dispositivo', {
             'fields': ('identificador', 'descricao', 'ativo')
         }),
         ('Datas', {

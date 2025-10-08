@@ -84,6 +84,165 @@ select.form-select-sm {
     font-size: 0.85rem;
     padding: 2px 5px;
 }
+
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.modal-overlay.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay .modal-content {
+    background-color: #fff;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+.modal-overlay .modal-header {
+    padding: 25px 30px;
+    border-bottom: 2px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    flex: 0 0 auto;
+}
+
+.modal-overlay .modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.modal-overlay .btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 40px;
+    cursor: pointer;
+    color: #999;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+}
+
+.modal-overlay .btn-close-modal:hover {
+    color: #333;
+}
+
+.modal-overlay .modal-body {
+    padding: 0;
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background-color: #fff;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.modal-overlay .modal-footer {
+    padding: 25px 30px;
+    border-top: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    flex: 0 0 auto;
+}
+
+.modal-overlay .item-limpeza {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    border-bottom: 1px solid #e9ecef;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.modal-overlay .item-limpeza:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.modal-overlay .item-limpeza:last-child {
+    border-bottom: none;
+}
+
+.modal-overlay .item-label {
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    font-size: 18px;
+    flex: 1;
+}
+
+.modal-overlay .item-opcoes {
+    display: flex;
+    gap: 25px;
+}
+
+.modal-overlay .radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    margin: 0;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.modal-overlay .radio-label:hover {
+    background-color: #f1f3f5;
+}
+
+.modal-overlay .radio-label input[type="radio"] {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.modal-overlay .radio-label input[type="radio"]:checked {
+    accent-color: #28a745;
+}
+
+.modal-overlay .item-limpeza.erro {
+    background-color: #fff3cd;
+    border-left: 5px solid #ffc107;
+    animation: shake 0.5s;
+}
+
+.modal-overlay .item-limpeza.completo {
+    background-color: #d4edda;
+    border-left: 5px solid #28a745;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
 {% endblock %}
 
 {% block content %}
@@ -151,21 +310,14 @@ select.form-select-sm {
                 <tr>
                     <th style="width: 50px;">ID</th>
                     <th style="width: 120px;">Setor</th>
-                    <th style="width: 150px;">Sala</th>
+                    <th style="width: 200px;">Sala</th>
                     <th style="width: 150px;">Colaborador</th>
                     <th style="width: 110px;">Data</th>
                     <th style="width: 80px;">Hora</th>
                     <th style="width: 100px;">Tipo</th>
                     <th style="width: 120px;">Criticidade</th>
-                    <th style="width: 70px;">Portas</th>
-                    <th style="width: 70px;">Teto</th>
-                    <th style="width: 70px;">Paredes</th>
-                    <th style="width: 70px;">Janelas</th>
-                    <th style="width: 70px;">Piso</th>
-                    <th style="width: 100px;">Superfície</th>
-                    <th style="width: 80px;">Dispenser</th>
-                    <th style="min-width: 200px;">Observações</th>
-                    <th style="width: 80px;">Ações</th>
+                    <th style="min-width: 150px;">Observações</th>
+                    <th style="width: 180px;">Ações</th>
                 </tr>
             </thead>
             <tbody id="tableBody">
@@ -181,53 +333,23 @@ select.form-select-sm {
                         <span class="badge badge-{{ registro.tipo_limpeza }}">{{ registro.tipo_limpeza|upper }}</span>
                     </td>
                     <td>{% if registro.criticidade and registro.criticidade != 'NA' %}{{ registro.criticidade }}{% else %}-{% endif %}</td>
-                    <td>
-                        {% if registro.portas and registro.portas != 'NA' %}
-                        <span class="badge badge-{{ registro.portas|lower }}">{{ registro.portas }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.teto and registro.teto != 'NA' %}
-                        <span class="badge badge-{{ registro.teto|lower }}">{{ registro.teto }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.paredes and registro.paredes != 'NA' %}
-                        <span class="badge badge-{{ registro.paredes|lower }}">{{ registro.paredes }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.janelas and registro.janelas != 'NA' %}
-                        <span class="badge badge-{{ registro.janelas|lower }}">{{ registro.janelas }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.piso and registro.piso != 'NA' %}
-                        <span class="badge badge-{{ registro.piso|lower }}">{{ registro.piso }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.superficie_mobiliario and registro.superficie_mobiliario != 'NA' %}
-                        <span class="badge badge-{{ registro.superficie_mobiliario|lower }}">{{ registro.superficie_mobiliario }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td>
-                        {% if registro.dispenser and registro.dispenser != 'NA' %}
-                        <span class="badge badge-{{ registro.dispenser|lower }}">{{ registro.dispenser }}</span>
-                        {% else %}-{% endif %}
-                    </td>
-                    <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ registro.obs }}">
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ registro.obs }}">
                         {{ registro.obs|default:"-" }}
                     </td>
                     <td>
-                        <button class="btn btn-info btn-sm btn-info-icon" onclick="abrirModalEdicao({{ registro.id_registro }})">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
+                        <div class="d-flex">
+                            <button class="btn btn-info btn-sm" onclick="mostrarItensLimpeza({{ registro.id_registro }})">
+                                <i class="fas fa-info-circle"></i> Info
+                            </button>
+                            <button class="btn btn-secondary btn-sm ms-1" onclick="abrirModalEdicao({{ registro.id_registro }})">
+                                <i class="fas fa-pencil-alt"></i> Editar
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="17" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
+                    <td colspan="10" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -263,8 +385,8 @@ select.form-select-sm {
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Tipo de Limpeza</label>
                         <select id="editTipo" class="form-select">
-                            <option value="concorrente">Concorrente</option>
-                            <option value="terminal">Terminal</option>
+                            <option value="1">Concorrente</option>
+                            <option value="2">Terminal</option>
                         </select>
                     </div>
                 </div>
@@ -274,71 +396,23 @@ select.form-select-sm {
                         <div class="col-md-12">
                             <label class="form-label">Criticidade</label>
                             <select id="editCriticidade" class="form-select">
-                                <option value="nao-critico">Não crítico</option>
-                                <option value="semi-critico">Semi-crítico</option>
-                                <option value="critico">Crítico</option>
+                                <option value="1">Crítico</option>
+                                <option value="2">Semi-crítico</option>
+                                <option value="3">Não crítico</option>
                             </select>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Portas</label>
-                            <select id="editPortas" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Teto</label>
-                            <select id="editTeto" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Paredes</label>
-                            <select id="editParedes" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="form-label">Janelas</label>
-                            <select id="editJanelas" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary w-100" id="btnAbrirModalEdicaoLimpeza" style="font-size: 16px; padding: 14px;">
+                            <i class="fas fa-list-check"></i> Selecionar Itens de Limpeza
+                            <span id="contadorItensEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+                        </button>
                     </div>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Piso</label>
-                            <select id="editPiso" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Superfície/Mobiliário</label>
-                            <select id="editSuperficie" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label">Dispenser</label>
-                            <select id="editDispenser" class="form-select">
-                                <option value="S">SIM</option>
-                                <option value="N">NÃO</option>
-                                <option value="NA">N/A</option>
-                            </select>
-                        </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-success w-100" id="btnAbrirModalEdicaoReposicao" style="font-size: 16px; padding: 14px;">
+                            <i class="fas fa-box"></i> REPOSIÇÃO
+                            <span id="contadorReposicaoEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+                        </button>
                     </div>
                 </div>
                 <div class="mb-3">
@@ -376,6 +450,178 @@ select.form-select-sm {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-danger" id="confirmDelete">Excluir</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="itensLimpezaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-info"></i> Itens do Registro #<span id="itensLimpezaRegistroId"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="itensLimpezaBody">
+                <!-- Content will be populated by javascript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="modalItensLimpezaEdicao" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Itens de Limpeza Terminal</h3>
+            <button type="button" class="btn-close-modal" id="btnFecharModalLimpezaEdicao">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="item-limpeza">
+                <label class="item-label">Portas</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_portas" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_portas" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Teto</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_teto" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_teto" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Paredes</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_paredes" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_paredes" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Janelas</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_janelas" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_janelas" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Piso</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_piso" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_piso" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Superfície/Mobiliário</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_superficie_mobiliario" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_superficie_mobiliario" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Dispenser</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_dispenser" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_dispenser" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalLimpezaEdicao" style="font-size: 20px; padding: 18px;">
+                <i class="fas fa-check"></i> Confirmar
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="modalReposicaoEdicao" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Itens de Reposição</h3>
+            <button type="button" class="btn-close-modal" id="btnFecharModalReposicaoEdicao">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="item-limpeza">
+                <label class="item-label">Papel Higiênico</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_papel_hig" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_papel_hig" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Papel Toalha</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_papel_toalha" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_papel_toalha" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Álcool</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_alcool" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_alcool" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+            <div class="item-limpeza">
+                <label class="item-label">Sabonete</label>
+                <div class="item-opcoes">
+                    <label class="radio-label">
+                        <input type="radio" name="modal_sabonete" value="S"> SIM
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="modal_sabonete" value="N"> NÃO
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalReposicaoEdicao" style="font-size: 20px; padding: 18px;">
+                <i class="fas fa-check"></i> Confirmar
+            </button>
         </div>
     </div>
 </div>
@@ -491,16 +737,256 @@ select.form-select-sm {
     });
 
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+    const itensLimpezaModal = new bootstrap.Modal(document.getElementById('itensLimpezaModal'));
+    const modalItensLimpezaEdicao = document.getElementById('modalItensLimpezaEdicao');
+    const modalReposicaoEdicao = document.getElementById('modalReposicaoEdicao');
+    const itensLimpezaKeys = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
+    const itensReposicaoKeys = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+    const modaisEdicao = {
+        limpeza: modalItensLimpezaEdicao,
+        reposicao: modalReposicaoEdicao
+    };
+    const itensPorTipo = {
+        limpeza: itensLimpezaKeys,
+        reposicao: itensReposicaoKeys
+    };
+    const contadoresEdicao = {
+        limpeza: document.getElementById('contadorItensEdicao'),
+        reposicao: document.getElementById('contadorReposicaoEdicao')
+    };
     let currentEditId = null;
+    let currentRegistroData = null;
+
+    function limparMarcacoesModal(modal) {
+        if (!modal) return;
+        modal.querySelectorAll('.item-limpeza').forEach(item => item.classList.remove('erro', 'completo'));
+    }
+
+    function preencherModalEdicao(tipo) {
+        if (!currentRegistroData) return;
+        const modal = modaisEdicao[tipo];
+        if (!modal) return;
+        limparMarcacoesModal(modal);
+        itensPorTipo[tipo].forEach(chave => {
+            const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
+            const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
+            radios.forEach(radio => {
+                radio.checked = radio.value === valor;
+            });
+            if ((valor === 'S' || valor === 'N') && radios.length) {
+                const itemDiv = radios[0].closest('.item-limpeza');
+                if (itemDiv) {
+                    itemDiv.classList.add('completo');
+                }
+            }
+        });
+    }
+
+    function abrirModalEdicaoItens(tipo) {
+        const modal = modaisEdicao[tipo];
+        if (!modal || !currentRegistroData) return;
+        preencherModalEdicao(tipo);
+        modal.classList.add('show');
+    }
+
+    function fecharModalEdicaoItens(tipo) {
+        const modal = modaisEdicao[tipo];
+        if (!modal) return;
+        modal.classList.remove('show');
+        limparMarcacoesModal(modal);
+    }
+
+    function atualizarContadorEdicao(tipo) {
+        const contador = contadoresEdicao[tipo];
+        if (!contador || !currentRegistroData) return;
+        const itens = itensPorTipo[tipo];
+        const preenchidos = itens.every(chave => {
+            const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
+            return valor === 'S' || valor === 'N';
+        });
+        if (preenchidos) {
+            contador.textContent = `${itens.length}/${itens.length}`;
+            contador.style.display = 'inline';
+        } else {
+            contador.style.display = 'none';
+        }
+    }
+
+    function confirmarModalEdicaoItens(tipo) {
+        if (!currentRegistroData) return;
+        const modal = modaisEdicao[tipo];
+        if (!modal) return;
+        const itens = itensPorTipo[tipo];
+        let todosPreenchidos = true;
+
+        itens.forEach(chave => {
+            const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
+            const selecionado = modal.querySelector(`input[name="modal_${chave}"]:checked`);
+            const itemDiv = radios.length ? radios[0].closest('.item-limpeza') : null;
+            if (itemDiv) {
+                itemDiv.classList.remove('erro', 'completo');
+            }
+
+            if (selecionado) {
+                if (itemDiv) {
+                    itemDiv.classList.add('completo');
+                }
+                currentRegistroData[chave] = selecionado.value;
+            } else {
+                todosPreenchidos = false;
+                if (itemDiv) {
+                    itemDiv.classList.add('erro');
+                }
+            }
+        });
+
+        if (!todosPreenchidos) {
+            const primeiroErro = modal.querySelector('.item-limpeza.erro');
+            if (primeiroErro) {
+                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
+        atualizarContadorEdicao(tipo);
+        fecharModalEdicaoItens(tipo);
+    }
+
+    [modalItensLimpezaEdicao, modalReposicaoEdicao].forEach(modal => {
+        if (!modal) return;
+        modal.querySelectorAll('input[type="radio"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                const itemDiv = radio.closest('.item-limpeza');
+                if (itemDiv) {
+                    itemDiv.classList.remove('erro');
+                    itemDiv.classList.add('completo');
+                }
+            });
+        });
+    });
+
+    const btnAbrirModalEdicaoLimpeza = document.getElementById('btnAbrirModalEdicaoLimpeza');
+    if (btnAbrirModalEdicaoLimpeza) {
+        btnAbrirModalEdicaoLimpeza.addEventListener('click', () => abrirModalEdicaoItens('limpeza'));
+    }
+    const btnAbrirModalEdicaoReposicao = document.getElementById('btnAbrirModalEdicaoReposicao');
+    if (btnAbrirModalEdicaoReposicao) {
+        btnAbrirModalEdicaoReposicao.addEventListener('click', () => abrirModalEdicaoItens('reposicao'));
+    }
+
+    const btnFecharModalLimpezaEdicao = document.getElementById('btnFecharModalLimpezaEdicao');
+    if (btnFecharModalLimpezaEdicao) {
+        btnFecharModalLimpezaEdicao.addEventListener('click', () => fecharModalEdicaoItens('limpeza'));
+    }
+    const btnConfirmarModalLimpezaEdicao = document.getElementById('btnConfirmarModalLimpezaEdicao');
+    if (btnConfirmarModalLimpezaEdicao) {
+        btnConfirmarModalLimpezaEdicao.addEventListener('click', () => confirmarModalEdicaoItens('limpeza'));
+    }
+
+    const btnFecharModalReposicaoEdicao = document.getElementById('btnFecharModalReposicaoEdicao');
+    if (btnFecharModalReposicaoEdicao) {
+        btnFecharModalReposicaoEdicao.addEventListener('click', () => fecharModalEdicaoItens('reposicao'));
+    }
+    const btnConfirmarModalReposicaoEdicao = document.getElementById('btnConfirmarModalReposicaoEdicao');
+    if (btnConfirmarModalReposicaoEdicao) {
+        btnConfirmarModalReposicaoEdicao.addEventListener('click', () => confirmarModalEdicaoItens('reposicao'));
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            let handled = false;
+            if (modalItensLimpezaEdicao && modalItensLimpezaEdicao.classList.contains('show')) {
+                fecharModalEdicaoItens('limpeza');
+                handled = true;
+            }
+            if (modalReposicaoEdicao && modalReposicaoEdicao.classList.contains('show')) {
+                fecharModalEdicaoItens('reposicao');
+                handled = true;
+            }
+            if (handled) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+        }
+    });
+
+    function atualizarContadoresEdicao() {
+        atualizarContadorEdicao('limpeza');
+        atualizarContadorEdicao('reposicao');
+    }
+    function mostrarItensLimpeza(id) {
+        document.getElementById('itensLimpezaRegistroId').textContent = id;
+
+        fetch(`/obter-registro/${id}/`)
+            .then(response => response.json())
+            .then(data => {
+                const body = document.getElementById('itensLimpezaBody');
+                const itensLimpeza = [
+                    { label: 'Portas', value: data.portas },
+                    { label: 'Teto', value: data.teto },
+                    { label: 'Paredes', value: data.paredes },
+                    { label: 'Janelas', value: data.janelas },
+                    { label: 'Piso', value: data.piso },
+                    { label: 'Superfície/Mobiliário', value: data.superficie_mobiliario },
+                    { label: 'Dispenser', value: data.dispenser }
+                ];
+                const itensReposicao = [
+                    { label: 'Papel Higienico', value: data.papel_hig },
+                    { label: 'Papel Toalha', value: data.papel_toalha },
+                    { label: 'Alcool', value: data.alcool },
+                    { label: 'Sabonete', value: data.sabonete }
+                ];
+
+                const filtrarSim = item => (item.value || '').toString().toUpperCase() === 'S';
+                const limpezaSim = itensLimpeza.filter(filtrarSim);
+                const reposicaoSim = itensReposicao.filter(filtrarSim);
+
+                if (!limpezaSim.length && !reposicaoSim.length) {
+                    body.innerHTML = '<p class="text-muted mb-0">Nenhum item </p>';
+                } else {
+                    let content = '';
+
+                    if (limpezaSim.length) {
+                        content += '<h6 class="fw-bold">Itens de Limpeza</h6><ul class="list-group mb-3">';
+                        limpezaSim.forEach(item => {
+                            content += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.label}<span class="badge bg-success rounded-pill">S</span></li>`;
+                        });
+                        content += '</ul>';
+                    }
+
+                    if (reposicaoSim.length) {
+                        content += '<h6 class="fw-bold">Itens de Reposicao</h6><ul class="list-group">';
+                        reposicaoSim.forEach(item => {
+                            content += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.label}<span class="badge bg-success rounded-pill">S</span></li>`;
+                        });
+                        content += '</ul>';
+                    }
+
+                    body.innerHTML = content;
+                }
+
+                itensLimpezaModal.show();
+            })
+            .catch(() => {
+                alert('Erro ao carregar dados do registro');
+            });
+    }
 
     function toggleCamposTerminalEdit() {
         const tipoLimpeza = document.getElementById('editTipo').value;
         const camposTerminalEdit = document.getElementById('camposTerminalEdit');
 
-        if (tipoLimpeza === 'terminal') {
+        if (tipoLimpeza === '2') {
             camposTerminalEdit.style.display = 'block';
+            atualizarContadoresEdicao();
         } else {
             camposTerminalEdit.style.display = 'none';
+            if (contadoresEdicao.limpeza) {
+                contadoresEdicao.limpeza.style.display = 'none';
+            }
+            if (contadoresEdicao.reposicao) {
+                contadoresEdicao.reposicao.style.display = 'none';
+            }
         }
     }
 
@@ -511,19 +997,25 @@ select.form-select-sm {
         fetch(`/obter-registro/${id}/`)
             .then(response => response.json())
             .then(data => {
+                currentRegistroData = data;
+                const camposTerminal = [
+                    'portas', 'teto', 'paredes', 'janelas', 'piso',
+                    'superficie_mobiliario', 'dispenser',
+                    'papel_hig', 'papel_toalha', 'alcool', 'sabonete'
+                ];
+                camposTerminal.forEach(campo => {
+                    currentRegistroData[campo] = (currentRegistroData[campo] || 'NA').toString().toUpperCase();
+                });
                 document.getElementById('editColaborador').value = data.colaborador || '';
                 document.getElementById('editData').value = data.data_limpeza || '';
                 document.getElementById('editHora').value = data.hora_limpeza || '';
-                document.getElementById('editTipo').value = data.tipo_limpeza || 'concorrente';
-                document.getElementById('editCriticidade').value = data.criticidade || 'nao-critico';
-                document.getElementById('editPortas').value = data.portas || 'NA';
-                document.getElementById('editTeto').value = data.teto || 'NA';
-                document.getElementById('editParedes').value = data.paredes || 'NA';
-                document.getElementById('editJanelas').value = data.janelas || 'NA';
-                document.getElementById('editPiso').value = data.piso || 'NA';
-                document.getElementById('editSuperficie').value = data.superficie_mobiliario || 'NA';
-                document.getElementById('editDispenser').value = data.dispenser || 'NA';
+                const tipoLimpezaValor = data.tipo_limpeza ? data.tipo_limpeza.toString() : '1';
+                const criticidadeValor = data.criticidade ? data.criticidade.toString() : '3';
+                document.getElementById('editTipo').value = tipoLimpezaValor;
+                document.getElementById('editCriticidade').value = criticidadeValor;
                 document.getElementById('editObs').value = data.obs || '';
+                currentRegistroData.tipo_limpeza = tipoLimpezaValor;
+                currentRegistroData.criticidade = criticidadeValor;
 
                 toggleCamposTerminalEdit();
                 editModal.show();
@@ -533,7 +1025,17 @@ select.form-select-sm {
             });
     }
 
-    document.getElementById('editTipo').addEventListener('change', toggleCamposTerminalEdit);
+    document.getElementById('editTipo').addEventListener('change', function() {
+        if (currentRegistroData) {
+            currentRegistroData.tipo_limpeza = this.value;
+        }
+        toggleCamposTerminalEdit();
+    });
+    document.getElementById('editCriticidade').addEventListener('change', function() {
+        if (currentRegistroData) {
+            currentRegistroData.criticidade = this.value;
+        }
+    });
 
     document.getElementById('btnSalvarEdit').addEventListener('click', function() {
         if (!currentEditId) return;
@@ -544,13 +1046,17 @@ select.form-select-sm {
             hora_limpeza: document.getElementById('editHora').value,
             tipo_limpeza: document.getElementById('editTipo').value,
             criticidade: document.getElementById('editCriticidade').value,
-            portas: document.getElementById('editPortas').value,
-            teto: document.getElementById('editTeto').value,
-            paredes: document.getElementById('editParedes').value,
-            janelas: document.getElementById('editJanelas').value,
-            piso: document.getElementById('editPiso').value,
-            superficie_mobiliario: document.getElementById('editSuperficie').value,
-            dispenser: document.getElementById('editDispenser').value,
+            portas: currentRegistroData.portas,
+            teto: currentRegistroData.teto,
+            paredes: currentRegistroData.paredes,
+            janelas: currentRegistroData.janelas,
+            piso: currentRegistroData.piso,
+            superficie_mobiliario: currentRegistroData.superficie_mobiliario,
+            dispenser: currentRegistroData.dispenser,
+            papel_hig: currentRegistroData.papel_hig,
+            papel_toalha: currentRegistroData.papel_toalha,
+            alcool: currentRegistroData.alcool,
+            sabonete: currentRegistroData.sabonete,
             obs: document.getElementById('editObs').value.trim()
         };
 
