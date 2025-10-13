@@ -593,6 +593,11 @@ def login_relatorio_view(request):
     return render(request, 'login_relatorio.html')
 
 
+def logout_relatorio_view(request):
+    request.session.flush()
+    return redirect('login_relatorio_view')
+
+
 @relatorio_auth_required
 def relatorio_view(request):
     pass

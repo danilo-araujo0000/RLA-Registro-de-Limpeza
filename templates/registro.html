@@ -302,7 +302,7 @@
             <label for="obs" class="form-label">
                 <i class="fas fa-comment-dots" style="color: #6c757d;"></i> Observações <small class="text-muted">(Opcional)</small>
             </label>
-            <textarea class="form-control" id="obs" name="obs" rows="3" placeholder=" observações adicionaisa..."></textarea>
+            <textarea class="form-control" id="obs" name="obs" rows="3" placeholder=" observações adicionais..."></textarea>
         </div>
 
         <button type="submit" class="btn btn-success w-100" style="font-size: 18px; padding: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
@@ -315,7 +315,6 @@
 {% block scripts %}
     {{ block.super }}
     <script>
-        // Pass data from Django template to JavaScript
         window.registroData = {
             colaboradores: {{ colaboradores|safe }}
         };

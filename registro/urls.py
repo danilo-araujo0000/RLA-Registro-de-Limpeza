@@ -8,6 +8,7 @@ urlpatterns = [
     path('registro/<int:sala_id>/', views.registro_view, name='registro_view'),
     path('historico/<int:sala_id>/', views.historico_view, name='historico_view'),
     path('login-relatorio/', views.login_relatorio_view, name='login_relatorio_view'),
+    path('logout-relatorio/', views.logout_relatorio_view, name='logout_relatorio_view'),
     path('relatorio/', views.relatorio_view, name='relatorio_view'),
     path('obter-registro/<int:registro_id>/', views.obter_registro_view, name='obter_registro_view'),
     path('atualizar-registro/<int:registro_id>/', views.atualizar_registro_view, name='atualizar_registro_view'),
