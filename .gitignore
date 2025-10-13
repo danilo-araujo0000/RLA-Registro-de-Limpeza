@@ -1,2 +1,169 @@
-/instantclient-basic-windows.x64-23.7.0.25.01
-./instantclient-basic-windows.x64-23.7.0.25.01/*
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/media/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.env
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+bin/
+gen/
+out/
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+captures/
+.externalNativeBuild
+.cxx
+local.properties
+*.iml
+.navigation/
+output.json
+google-services.json
+
+# Android Build
+android/HIgiene/app/build/
+android/HIgiene/app/release/
+android/HIgiene/.gradle/
+android/HIgiene/build/
+android/HIgiene/captures/
+android/HIgiene/local.properties
+android/HIgiene/.idea/
+android/HIgiene/*.iml
+
+# Oracle Instant Client
+instantclient-basic-windows.x64-23.7.0.25.01/
+instantclient*/
+*.dll
+*.so
+*.dylib
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.sqlite3
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# Compressed files
+*.zip
+*.tar.gz
+*.rar
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Documentation
+docs/_build/
+
+# PyCharm
+.idea/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath
+*.sage.py
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre
+.pyre/

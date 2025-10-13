@@ -318,6 +318,40 @@ function selecionarColaborador(colaborador) {
     adicionarColaborador(colaborador);
 }
 
+function abrirModalObs() {
+    console.log('Abrindo modal de observações');
+    const modal = document.getElementById('modalObservacoes');
+    if (!modal) {
+        console.error('Modal não encontrado!');
+        return;
+    }
+    modal.classList.add('show');
+
+    // Carrega o texto existente no modal
+    const obsHidden = document.getElementById('obs_hidden').value;
+    document.getElementById('modal_obs').value = obsHidden;
+
+    // Foca no textarea após um pequeno delay
+    setTimeout(() => {
+        document.getElementById('modal_obs').focus();
+    }, 300);
+}
+
+function fecharModalObs() {
+    document.getElementById('modalObservacoes').classList.remove('show');
+}
+
+function confirmarObservacoes() {
+    const obsTexto = document.getElementById('modal_obs').value.trim();
+    document.getElementById('obs_hidden').value = obsTexto;
+
+    // Atualiza o textarea de display
+    const obsDisplay = document.getElementById('obs_display');
+    obsDisplay.value = obsTexto;
+
+    fecharModalObs();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     preencherDataHora();
     document.getElementById("tipo_limpeza").addEventListener("change", toggleCamposTerminal);
@@ -351,6 +385,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnAbrirModalReposicao').addEventListener('click', abrirModalReposicao);
     document.getElementById('btnFecharModalReposicao').addEventListener('click', fecharModalReposicao);
     document.getElementById('btnConfirmarModalReposicao').addEventListener('click', confirmarItensReposicao);
+
+    // Event listeners para modal de observações
+    const obsDisplay = document.getElementById('obs_display');
+    const btnFecharModalObs = document.getElementById('btnFecharModalObs');
+    const btnConfirmarModalObs = document.getElementById('btnConfirmarModalObs');
+
+    if (obsDisplay) {
+        obsDisplay.addEventListener('click', abrirModalObs);
+    }
+    if (btnFecharModalObs) {
+        btnFecharModalObs.addEventListener('click', fecharModalObs);
+    }
+    if (btnConfirmarModalObs) {
+        btnConfirmarModalObs.addEventListener('click', confirmarObservacoes);
+    }
 
     const radios = document.querySelectorAll('#modalItensLimpeza input[type="radio"]');
     radios.forEach(radio => {

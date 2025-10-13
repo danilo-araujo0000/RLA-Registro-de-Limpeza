@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY' , 'django-nao -tem segredo')
 
-DEBUG = os.environ.get('DEBUG', 'True').lower() in ('true', '1', 'yes')
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -84,10 +84,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Removido STATICFILES_DIRS para evitar conflitos com whitenoise
-# STATICFILES_DIRS = [
-#     BASE_DIR / "static",
-# ]
+STATICFILES_DIRS = [
+     BASE_DIR / "static",
+ ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

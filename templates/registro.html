@@ -299,10 +299,34 @@
         </div>
 
         <div class="mb-4">
-            <label for="obs" class="form-label">
+            <label class="form-label">
                 <i class="fas fa-comment-dots" style="color: #6c757d;"></i> Observações <small class="text-muted">(Opcional)</small>
             </label>
-            <textarea class="form-control" id="obs" name="obs" rows="3" placeholder=" observações adicionais..."></textarea>
+            <textarea class="form-control" id="obs_display" rows="3" placeholder="Clique para adicionar observações..." readonly style="cursor: pointer; background-color: #f8f9fa;"></textarea>
+        </div>
+
+        <input type="hidden" name="obs" id="obs_hidden" value="">
+
+        <div id="modalObservacoes" class="modal-overlay">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Observações</h3>
+                    <button type="button" class="btn-close-modal" id="btnFecharModalObs">&times;</button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    <div class="mb-3">
+                        <label class="form-label" style="font-weight: 600; font-size: 16px;">
+                            <i class="fas fa-comment-dots" style="color: #6c757d;"></i> Digite as observações
+                        </label>
+                        <textarea class="form-control" id="modal_obs" rows="8" placeholder=" observações adicionais..." style="font-size: 16px;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success w-100" id="btnConfirmarModalObs" style="font-size: 20px; padding: 18px;">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
+                </div>
+            </div>
         </div>
 
         <button type="submit" class="btn btn-success w-100" style="font-size: 18px; padding: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;">
