@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: RLA-registro-de-limpeza-ames
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+    environment:
+      - PYTHONUNBUFFERED=1
+      - SECRET_KEY=594F93760230ACA19A057FBEE71FC058
+      - DEBUG=False
+      - DB_NAME=172.19.0.250:1521/prdamevo
+      - DB_USER=dbasistemas
+      - DB_PASSWORD=dbasistemas
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=suporteame.ti@santacasavotuporanga.com.br
+      - DJANGO_SUPERUSER_PASSWORD=adminVsti2013
+    restart: unless-stopped
+
+volumes:
+  static_volume:

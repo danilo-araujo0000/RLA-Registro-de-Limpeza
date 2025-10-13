@@ -22,7 +22,10 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+export_salas.py
+generate_labels.py
+*.pdf
+salas.json
 # Django
 *.log
 local_settings.py
@@ -114,6 +117,9 @@ Thumbs.db
 *.zip
 *.tar.gz
 *.rar
+
+#docker 
+.docker-compose.yml
 
 # Coverage reports
 htmlcov/
