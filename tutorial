@@ -1,0 +1,8 @@
+# Construir a imagem
+docker build -t higiene-app .
+
+# Executar com docker-compose (recomendado)
+docker-compose up -d
+
+# Ou executar diretamente
+docker run -p 8000:8000 --env-file higiene_project/.env higiene-app

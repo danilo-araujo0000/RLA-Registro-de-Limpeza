@@ -1,0 +1,34 @@
+.card {
+    background-color: #fff;
+    padding: 50px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+.btn-menu {
+    width: 100%;
+    padding: 20px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+.badge-setor {
+    color: white;
+    font-size: 1rem;
+}
+.setor-color-0 { background-color: #198754; }
+.setor-color-1 { background-color: #6610f2; }
+.setor-color-2 { background-color: #20c997; }
+.setor-color-3 { background-color: #d63384; }
+.setor-color-4 { background-color: #17a2b8; }
+.setor-color-5 { background-color: #fd7e14; }
+.setor-color-6 { background-color: #ffc107; }
+.setor-color-7 { background-color: #0d6efd; }
+.setor-color-8 { background-color: #20c997; }
+.setor-color-9 { background-color: #0dcaf0; }
+.setor-color-10 { background-color: #6c757d; }
+.setor-color-11 { background-color: #e83e8c; }
+.setor-color-12 { background-color: #9b59b6; }
+.setor-color-13 { background-color: #28a745; }
+.setor-color-14 { background-color: #3498db; }
+.setor-color-15 { background-color: #5a6268; }

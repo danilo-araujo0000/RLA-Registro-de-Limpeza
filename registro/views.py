@@ -1,30 +1,52 @@
 import os
 from django.shortcuts import render, redirect
-from django.conf import settings
+from django.utils.text import slugify
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import oracledb
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
-from .decorators import ip_whitelist_required
+from .decorators import ip_whitelist_required, relatorio_auth_required, relatorio_edit_blocked
 
 try:
-    instant_client_dir = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        '..',
-        'instantclient-basic-windows.x64-23.7.0.25.01',
-        'instantclient_23_7'
-    )
-    oracledb.init_oracle_client(lib_dir=instant_client_dir)
-except oracledb.exceptions.ClientError as e:
-    print(f"Error initializing Oracle Client: {e}")
+    if os.name == 'nt':  
+        instant_client_dir = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            '..',
+            'instantclient-basic-windows.x64-23.7.0.25.01',
+            'instantclient_23_7'
+        )
+        oracledb.init_oracle_client(lib_dir=instant_client_dir)
+    else:  
+        oracledb.init_oracle_client(lib_dir="/opt/oracle/instantclient_23_5")
+except Exception as e:
+    print(f"Erro ao inicializar Oracle Client: {e}")
+
+
+def extrair_nome_abreviado(nome_completo):
+    if not nome_completo:
+        return ''
+
+    partes_nome = nome_completo.split()
+    preposicoes = ['de', 'da', 'do', 'dos', 'das']
+    nome_abreviado_partes = [partes_nome[0]]  
+
+    
+    for i in range(1, len(partes_nome)):
+        nome_abreviado_partes.append(partes_nome[i])
+        if partes_nome[i].lower() not in preposicoes:
+            break
+
+    return ' '.join(nome_abreviado_partes)
 
 
 def get_oracle_connection():
-    db_config = settings.DATABASES['oracle']
-    dsn = oracledb.makedsn(db_config['NAME'].split(':')[0], db_config['NAME'].split(':')[1].split('/')[0], service_name=db_config['NAME'].split('/')[1])
-    return oracledb.connect(user=db_config['USER'], password=db_config['PASSWORD'], dsn=dsn)
+    db_name = os.environ.get('DB_NAME', '')
+    db_user = os.environ.get('DB_USER', '')
+    db_password = os.environ.get('DB_PASSWORD', '')
+    dsn = oracledb.makedsn(db_name.split(':')[0], db_name.split(':')[1].split('/')[0], service_name=db_name.split('/')[1])
+    return oracledb.connect(user=db_user, password=db_password, dsn=dsn)
 
 @ip_whitelist_required()
 def redirect_view(request):
@@ -98,9 +120,9 @@ def registro_view(request, sala_id):
             return render(request, 'error.html', {'message': 'Sala não encontrada!'})
 
         query_colaboradores = """
-            SELECT DISTINCT NM_USUARIO
+            SELECT DISTINCT NM_USUARIO, CD_USUARIO
             FROM dbasgu.USUARIOS u
-            WHERE u.DS_OBSERVACAO = 'HIGIENE'
+            WHERE u.DS_OBSERVACAO = 'HIGIENE' AND u.SN_ATIVO = 'S'
             ORDER BY NM_USUARIO
         """
         cursor.execute(query_colaboradores)
@@ -108,11 +130,13 @@ def registro_view(request, sala_id):
 
         for row in results:
             nome_completo = row[0]
+            cd_usuario = row[1]
             if nome_completo:
-                primeiro_nome = nome_completo.split()[0]
+                nome_abreviado = extrair_nome_abreviado(nome_completo)
                 colaboradores.append({
-                    'primeiro_nome': primeiro_nome,
-                    'nome_completo': nome_completo
+                    'primeiro_nome': nome_abreviado,
+                    'nome_completo': nome_completo,
+                    'cd_usuario': cd_usuario
                 })
 
     except oracledb.Error as e:
@@ -136,9 +160,18 @@ def salvar_registro_view(request):
             cursor = conn.cursor()
 
             id_sala = request.POST.get('id_sala')
-            colaborador_primeiro_nome = request.POST.get('colaborador_primeiro_nome')
-            colaborador_completo = request.POST.get('colaborador')
-            colaborador = colaborador_primeiro_nome if colaborador_primeiro_nome else colaborador_completo.split()[0] if colaborador_completo else ''
+
+            colaboradores_json = request.POST.get('colaboradores_json')
+            if not colaboradores_json:
+                return render(request, 'error.html', {'message': 'Nenhum colaborador selecionado!'})
+
+            try:
+                json.loads(colaboradores_json) 
+            except json.JSONDecodeError:
+                return render(request, 'error.html', {'message': 'Formato de colaboradores inválido!'})
+
+            colaborador = colaboradores_json
+
             hora_limpeza = request.POST.get('hora_limpeza')
             id_tipo_limpeza = request.POST.get('tipo_limpeza')
 
@@ -165,7 +198,6 @@ def salvar_registro_view(request):
             if not dispenser:
                 dispenser = 'NA'
 
-            # Campos de reposição
             papel_hig = request.POST.get('papel_hig')
             if not papel_hig:
                 papel_hig = 'NA'
@@ -180,15 +212,24 @@ def salvar_registro_view(request):
                 sabonete = 'NA'
 
             obs = request.POST.get('obs')
+            device_id = request.COOKIES.get('device_id')
+            if not device_id:
+                device_id = request.META.get('HTTP_X_DEVICE_ID')
+            if not device_id:
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    device_id = x_forwarded_for.split(',')[0]
+                else:
+                    device_id = request.META.get('REMOTE_ADDR')
 
             sql = """INSERT INTO if_tbl_registro_higiene (
                 ID_SALA, COLABORADOR, DATA_LIMPEZA, HORA_LIMPEZA, ID_TIPO_LIMPEZA, OBS,
                 PORTAS, TETO, PAREDES, JANELAS, PISO, SUPERFICIE_MOBILIARIO, DISPENSER, ID_CRITICIDADE,
-                PAPEL_HIG, PAPEL_TOALHA, ALCOOL, SABONETE
+                PAPEL_HIG, PAPEL_TOALHA, ALCOOL, SABONETE, DEVICE, LAST_UPDATE
             ) VALUES (
                 :id_sala, :colaborador, SYSDATE, :hora_limpeza, :id_tipo_limpeza, :obs,
                 :portas, :teto, :paredes, :janelas, :piso, :superficie_mobiliario, :dispenser, :id_criticidade,
-                :papel_hig, :papel_toalha, :alcool, :sabonete
+                :papel_hig, :papel_toalha, :alcool, :sabonete, :device_id, SYSDATE
             )"""
 
             cursor.execute(sql, {
@@ -209,6 +250,7 @@ def salvar_registro_view(request):
                 'papel_toalha': papel_toalha,
                 'alcool': alcool,
                 'sabonete': sabonete,
+                'device_id': device_id,
             })
             conn.commit()
             return redirect('sucesso_view')
@@ -233,15 +275,52 @@ def salas_view(request):
     conn = None
     cursor = None
     salas = []
+    setores_dict = {}
 
     try:
         conn = get_oracle_connection()
         cursor = conn.cursor()
 
         query = """
-            SELECT s.id_sala, s.nome_sala, st.nome_setor, st.id_setor
+            SELECT s.id_sala,
+                   s.nome_sala,
+                   st.nome_setor,
+                   st.id_setor,
+                   NVL(MAX(r.id_tipo_limpeza), 1) AS tipo_preferencial,
+                   uc.data_limpeza AS ultima_concorrente,
+                   uc.hora_limpeza AS ultima_concorrente_hora,
+                   ut.data_limpeza AS ultima_terminal_data,
+                   ut.hora_limpeza AS ultima_terminal_hora
             FROM if_tbl_sala_higiene s
             JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
+            LEFT JOIN if_tbl_registro_higiene r ON r.id_sala = s.id_sala
+            LEFT JOIN (
+                SELECT id_sala, data_limpeza, hora_limpeza
+                FROM (
+                    SELECT id_sala,
+                           data_limpeza,
+                           hora_limpeza,
+                           ROW_NUMBER() OVER (PARTITION BY id_sala ORDER BY data_limpeza DESC, hora_limpeza DESC) AS rn
+                    FROM if_tbl_registro_higiene
+                    WHERE id_tipo_limpeza = 1
+                )
+                WHERE rn = 1
+            ) uc ON uc.id_sala = s.id_sala
+            LEFT JOIN (
+                SELECT id_sala, data_limpeza, hora_limpeza
+                FROM (
+                    SELECT id_sala,
+                           data_limpeza,
+                           hora_limpeza,
+                           ROW_NUMBER() OVER (PARTITION BY id_sala ORDER BY data_limpeza DESC, hora_limpeza DESC) AS rn
+                    FROM if_tbl_registro_higiene
+                    WHERE id_tipo_limpeza = 2
+                )
+                WHERE rn = 1
+            ) ut ON ut.id_sala = s.id_sala
+            GROUP BY s.id_sala, s.nome_sala, st.nome_setor, st.id_setor,
+                     uc.data_limpeza, uc.hora_limpeza,
+                     ut.data_limpeza, ut.hora_limpeza
             ORDER BY s.id_sala ASC
         """
         cursor.execute(query)
@@ -249,11 +328,52 @@ def salas_view(request):
 
         for row in results:
             id_setor = row[3]
+            tipo_preferencial = int(row[4]) if len(row) > 4 and row[4] is not None else 1
+            tipo_descricao = 'terminal' if tipo_preferencial == 2 else 'concorrente'
+            ultima_concorrente = row[5] if len(row) > 5 else None
+            ultima_concorrente_hora = row[6] if len(row) > 6 else None
+            ultima_terminal_data = row[7] if len(row) > 7 else None
+            ultima_terminal_hora = row[8] if len(row) > 8 else None
+
+            ultima_concorrente_fmt = ultima_concorrente.strftime('%d/%m/%Y') if ultima_concorrente else '-'
+            ultima_terminal_data_fmt = ultima_terminal_data.strftime('%d/%m/%Y') if ultima_terminal_data else '-'
+            if ultima_concorrente_hora:
+                if hasattr(ultima_concorrente_hora, 'strftime'):
+                    ultima_concorrente_hora_fmt = ultima_concorrente_hora.strftime('%H:%M')
+                else:
+                    hora_str = str(ultima_concorrente_hora)
+                    ultima_concorrente_hora_fmt = hora_str[:5]
+            else:
+                ultima_concorrente_hora_fmt = ''
+            if ultima_terminal_hora:
+                if hasattr(ultima_terminal_hora, 'strftime'):
+                    ultima_terminal_hora_fmt = ultima_terminal_hora.strftime('%H:%M')
+                else:
+                    hora_str = str(ultima_terminal_hora)
+                    ultima_terminal_hora_fmt = hora_str[:5]
+            else:
+                ultima_terminal_hora_fmt = ''
+
+            nome_setor = row[2]
+            setor_color = f'setor-color-{(id_setor - 1) % 16}'
+            if nome_setor not in setores_dict:
+                setores_dict[nome_setor] = {
+                    'nome': nome_setor,
+                    'slug': slugify(nome_setor),
+                    'color': setor_color
+                }
+
             salas.append({
                 'id_sala': row[0],
                 'nome_sala': row[1],
                 'nome_setor': row[2],
-                'setor_color': f'setor-color-{(id_setor - 1) % 16}',
+                'setor_color': setor_color,
+                'setor_slug': setores_dict[nome_setor]['slug'],
+                'tipo_limpeza': tipo_descricao,
+                'ultima_concorrente': ultima_concorrente_fmt,
+                'ultima_concorrente_hora': ultima_concorrente_hora_fmt,
+                'ultima_terminal_data': ultima_terminal_data_fmt,
+                'ultima_terminal_hora': ultima_terminal_hora_fmt,
             })
 
     except oracledb.Error as e:
@@ -265,7 +385,10 @@ def salas_view(request):
         if conn:
             conn.close()
 
-    return render(request, 'salas.html', {'salas': salas})
+    return render(request, 'salas.html', {
+        'salas': salas,
+        'setores': sorted(setores_dict.values(), key=lambda x: x['nome'])
+    })
 
 @ip_whitelist_required()
 def historico_view(request, sala_id):
@@ -306,6 +429,7 @@ def historico_view(request, sala_id):
                     id_registro, colaborador, data_limpeza, hora_limpeza,
                     id_tipo_limpeza, obs, portas, teto, paredes, janelas,
                     piso, superficie_mobiliario, dispenser, id_criticidade,
+                    papel_hig, papel_toalha, alcool, sabonete,
                     ROW_NUMBER() OVER (ORDER BY data_limpeza DESC, hora_limpeza DESC) as rn
                 FROM if_tbl_registro_higiene
                 WHERE id_sala = :id_sala
@@ -315,14 +439,24 @@ def historico_view(request, sala_id):
         cursor.execute(query_registros, {'id_sala': sala_id, 'offset': offset, 'end_row': offset + limit})
         results = cursor.fetchall()
 
-        # Mapeamento de IDs para texto
         tipo_limpeza_map = {1: 'concorrente', 2: 'terminal'}
         criticidade_map = {1: 'crítico', 2: 'semi-crítico', 3: 'não-crítico'}
 
         for row in results:
+            colaborador_str = row[1]
+            colaborador_formatado = colaborador_str
+            try:
+                colaboradores_dict = json.loads(colaborador_str)
+                items = []
+                for key in sorted(colaboradores_dict.keys(), key=lambda x: int(x)):
+                    items.append(f"{key}. {colaboradores_dict[key]}")
+                colaborador_formatado = "\n".join(items)
+            except (json.JSONDecodeError, ValueError, AttributeError, TypeError):
+                pass
+
             registros.append({
                 'id_registro': row[0],
-                'colaborador': row[1],
+                'colaborador': colaborador_formatado,
                 'data_limpeza': row[2],
                 'hora_limpeza': row[3],
                 'tipo_limpeza': tipo_limpeza_map.get(row[4], 'concorrente'),
@@ -335,6 +469,10 @@ def historico_view(request, sala_id):
                 'superficie_mobiliario': row[11] if row[11] else 'NA',
                 'dispenser': row[12] if row[12] else 'NA',
                 'criticidade': criticidade_map.get(row[13], ''),
+                'papel_hig': row[14] if row[14] else 'NA',
+                'papel_toalha': row[15] if row[15] else 'NA',
+                'alcool': row[16] if row[16] else 'NA',
+                'sabonete': row[17] if row[17] else 'NA',
             })
 
         query_count = """
@@ -350,7 +488,7 @@ def historico_view(request, sala_id):
                 badge_tipo = 'warning' if registro['tipo_limpeza'] == 'terminal' else 'info'
 
                 html_registros += f"""
-                <div class="registro-item">
+                <div class="registro-item" data-tipo="{registro['tipo_limpeza']}">
                     <div class="row">
                         <div class="col-md-6">
                             <p><i class="fas fa-user"></i> <strong>Colaborador:</strong> {registro['colaborador']}</p>
@@ -387,6 +525,20 @@ def historico_view(request, sala_id):
                         html_registros += f'<span class="badge badge-{registro["superficie_mobiliario"].lower()}">Superfície: {registro["superficie_mobiliario"]}</span>'
                     if registro['dispenser'] != 'NA':
                         html_registros += f'<span class="badge badge-{registro["dispenser"].lower()}">Dispenser: {registro["dispenser"]}</span>'
+
+                    html_registros += '</div></div>'
+
+                    
+                    html_registros += '<div class="mt-3"><strong>Reposição:</strong><div class="d-flex flex-wrap gap-2 mt-2">'
+
+                    if registro['papel_hig'] != 'NA':
+                        html_registros += f'<span class="badge badge-{registro["papel_hig"].lower()}">Papel Higiênico: {registro["papel_hig"]}</span>'
+                    if registro['papel_toalha'] != 'NA':
+                        html_registros += f'<span class="badge badge-{registro["papel_toalha"].lower()}">Papel Toalha: {registro["papel_toalha"]}</span>'
+                    if registro['alcool'] != 'NA':
+                        html_registros += f'<span class="badge badge-{registro["alcool"].lower()}">Álcool: {registro["alcool"]}</span>'
+                    if registro['sabonete'] != 'NA':
+                        html_registros += f'<span class="badge badge-{registro["sabonete"].lower()}">Sabonete: {registro["sabonete"]}</span>'
 
                     html_registros += '</div></div>'
 
@@ -429,27 +581,52 @@ def login_relatorio_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        if username == 'admin' and password == 'hgn':
-            request.session['relatorio_autenticado'] = True
+        from .models import UserRelatorio
+
+        try:
+            user = UserRelatorio.objects.get(username=username, password=password, ativo=True)
+            request.session['relatorio_user_id'] = user.id
             return redirect('relatorio_view')
-        else:
+        except UserRelatorio.DoesNotExist:
             return render(request, 'login_relatorio.html', {'erro': 'Usuário ou senha incorretos'})
 
     return render(request, 'login_relatorio.html')
 
 
+@relatorio_auth_required
 def relatorio_view(request):
-    if not request.session.get('relatorio_autenticado'):
-        return redirect('login_relatorio_view')
+    pass
 
     conn = None
     cursor = None
     registros = []
-    setores = set()
+    setores_dict = {}
+    colaboradores = []
 
     try:
         conn = get_oracle_connection()
         cursor = conn.cursor()
+
+        
+        query_colaboradores = """
+            SELECT DISTINCT NM_USUARIO, CD_USUARIO
+            FROM dbasgu.USUARIOS u
+            WHERE u.DS_OBSERVACAO = 'HIGIENE' AND u.SN_ATIVO = 'S'
+            ORDER BY NM_USUARIO
+        """
+        cursor.execute(query_colaboradores)
+        results_colab = cursor.fetchall()
+
+        for row in results_colab:
+            nome_completo = row[0]
+            cd_usuario = row[1]
+            if nome_completo:
+                nome_abreviado = extrair_nome_abreviado(nome_completo)
+                colaboradores.append({
+                    'primeiro_nome': nome_abreviado,
+                    'nome_completo': nome_completo,
+                    'cd_usuario': cd_usuario
+                })
 
         data_inicio_param = request.GET.get('data_inicio')
         data_fim_param = request.GET.get('data_fim')
@@ -471,7 +648,7 @@ def relatorio_view(request):
             SELECT
                 r.id_registro, r.colaborador, r.data_limpeza, r.hora_limpeza,
                 r.id_tipo_limpeza, r.obs, r.id_criticidade,
-                s.nome_sala, st.nome_setor,
+                s.nome_sala, st.nome_setor, st.id_setor,
                 r.portas, r.teto, r.paredes, r.janelas, r.piso,
                 r.superficie_mobiliario, r.dispenser
             FROM if_tbl_registro_higiene r
@@ -483,15 +660,35 @@ def relatorio_view(request):
         cursor.execute(query, query_params)
         results = cursor.fetchall()
 
-        # Mapeamento de IDs para texto
+        
         tipo_limpeza_map = {1: 'concorrente', 2: 'terminal'}
         criticidade_map = {1: 'crítico', 2: 'semi-crítico', 3: 'não-crítico'}
 
         for row in results:
-            setores.add(row[8])
+            nome_setor = row[8]
+            id_setor = row[9]
+            if nome_setor not in setores_dict:
+                setores_dict[nome_setor] = {
+                    'nome': nome_setor,
+                    'id': id_setor,
+                    'color': f'setor-color-{(id_setor - 1) % 16}'
+                }
+
+            
+            colaborador_str = row[1]
+            colaborador_formatado = colaborador_str
+            try:
+                colaboradores_dict = json.loads(colaborador_str)
+                items = []
+                for key in sorted(colaboradores_dict.keys(), key=lambda x: int(x)):
+                    items.append(f"{key}. {colaboradores_dict[key]}")
+                colaborador_formatado = "\n".join(items)
+            except (json.JSONDecodeError, ValueError, AttributeError, TypeError):
+                pass  
+
             registros.append({
                 'id_registro': row[0],
-                'colaborador': row[1],
+                'colaborador': colaborador_formatado,
                 'data_limpeza': row[2],
                 'hora_limpeza': row[3],
                 'tipo_limpeza': tipo_limpeza_map.get(row[4], 'concorrente'),
@@ -499,13 +696,14 @@ def relatorio_view(request):
                 'criticidade': criticidade_map.get(row[6], ''),
                 'nome_sala': row[7],
                 'nome_setor': row[8],
-                'portas': row[9],
-                'teto': row[10],
-                'paredes': row[11],
-                'janelas': row[12],
-                'piso': row[13],
-                'superficie_mobiliario': row[14],
-                'dispenser': row[15],
+                'setor_color': setores_dict[row[8]]['color'],
+                'portas': row[10],
+                'teto': row[11],
+                'paredes': row[12],
+                'janelas': row[13],
+                'piso': row[14],
+                'superficie_mobiliario': row[15],
+                'dispenser': row[16],
             })
 
     except oracledb.Error as e:
@@ -519,7 +717,8 @@ def relatorio_view(request):
 
     return render(request, 'relatorio.html', {
         'registros': registros,
-        'setores': sorted(setores)
+        'setores': sorted(setores_dict.values(), key=lambda x: x['nome']),
+        'colaboradores': json.dumps(colaboradores)
     })
 
 @csrf_exempt
@@ -555,7 +754,7 @@ def atualizar_registro_view(request, registro_id):
                 except Exception as e:
                     return JsonResponse({'error': 'Formato de data inválido'}, status=400)
 
-            # Mapear nomes de campos para os nomes corretos no banco
+            
             field_mapping = {
                 'tipo_limpeza': 'ID_TIPO_LIMPEZA',
                 'criticidade': 'ID_CRITICIDADE',
@@ -563,10 +762,10 @@ def atualizar_registro_view(request, registro_id):
             }
 
             if field == 'data_limpeza':
-                query = "UPDATE if_tbl_registro_higiene SET DATA_LIMPEZA = :value WHERE id_registro = :id"
+                query = "UPDATE if_tbl_registro_higiene SET DATA_LIMPEZA = :value, LAST_UPDATE = SYSDATE WHERE id_registro = :id"
             else:
                 db_field = field_mapping.get(field, field.upper())
-                query = f"UPDATE if_tbl_registro_higiene SET {db_field} = :value WHERE id_registro = :id"
+                query = f"UPDATE if_tbl_registro_higiene SET {db_field} = :value, LAST_UPDATE = SYSDATE WHERE id_registro = :id"
 
             cursor.execute(query, {'value': value, 'id': registro_id})
             conn.commit()
@@ -618,6 +817,8 @@ def excluir_registro_view(request, registro_id):
 
 @csrf_exempt
 @ip_whitelist_required()
+@relatorio_auth_required
+@relatorio_edit_blocked
 def obter_registro_view(request, registro_id):
     if request.method == 'GET':
         conn = None
@@ -628,12 +829,31 @@ def obter_registro_view(request, registro_id):
             cursor = conn.cursor()
 
             query = """
-                SELECT colaborador, data_limpeza, hora_limpeza, id_tipo_limpeza,
-                       id_criticidade, portas, teto, paredes, janelas, piso,
-                       superficie_mobiliario, dispenser, obs,
-                       papel_hig, papel_toalha, alcool, sabonete
-                FROM if_tbl_registro_higiene
-                WHERE id_registro = :id
+                SELECT
+                    r.colaborador,
+                    r.data_limpeza,
+                    r.hora_limpeza,
+                    r.id_tipo_limpeza,
+                    r.id_criticidade,
+                    r.portas,
+                    r.teto,
+                    r.paredes,
+                    r.janelas,
+                    r.piso,
+                    r.superficie_mobiliario,
+                    r.dispenser,
+                    r.papel_hig,
+                    r.papel_toalha,
+                    r.alcool,
+                    r.sabonete,
+                    s.nome_sala,
+                    st.nome_setor,
+                    r.device,
+                    r.obs
+                FROM if_tbl_registro_higiene r
+                JOIN if_tbl_sala_higiene s ON r.id_sala = s.id_sala
+                JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
+                WHERE r.id_registro = :id
             """
             cursor.execute(query, {'id': registro_id})
             result = cursor.fetchone()
@@ -643,8 +863,8 @@ def obter_registro_view(request, registro_id):
                     'colaborador': result[0],
                     'data_limpeza': result[1].strftime('%Y-%m-%d') if result[1] else '',
                     'hora_limpeza': result[2],
-                    'tipo_limpeza': result[3],  
-                    'criticidade': result[4] , 
+                    'tipo_limpeza': result[3],
+                    'criticidade': result[4],
                     'portas': result[5] or 'NA',
                     'teto': result[6] or 'NA',
                     'paredes': result[7] or 'NA',
@@ -652,11 +872,14 @@ def obter_registro_view(request, registro_id):
                     'piso': result[9] or 'NA',
                     'superficie_mobiliario': result[10] or 'NA',
                     'dispenser': result[11] or 'NA',
-                    'obs': result[12] or '',
-                    'papel_hig': result[13] or 'NA',
-                    'papel_toalha': result[14] or 'NA',
-                    'alcool': result[15] or 'NA',
-                    'sabonete': result[16] or 'NA'
+                    'papel_hig': result[12] or 'NA',
+                    'papel_toalha': result[13] or 'NA',
+                    'alcool': result[14] or 'NA',
+                    'sabonete': result[15] or 'NA',
+                    'nome_sala': result[16] or '-',
+                    'nome_setor': result[17] or '-',
+                    'device': result[18] or '',
+                    'obs': result[19] or ''
                 })
             else:
                 return JsonResponse({'error': 'Registro não encontrado'}, status=404)
@@ -671,4 +894,3 @@ def obter_registro_view(request, registro_id):
                 conn.close()
 
     return JsonResponse({'error': 'Método não permitido'}, status=405)
-

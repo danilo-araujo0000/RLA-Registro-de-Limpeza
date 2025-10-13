@@ -1,4 +1,4 @@
-# Generated manually for IPPermitido model
+
 
 from django.db import migrations, models
 

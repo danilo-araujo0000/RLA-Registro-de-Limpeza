@@ -1,47 +1,5 @@
 from django.db import models
 
-class Setor(models.Model):
-    id_setor = models.AutoField(primary_key=True)
-    nome_setor = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'if_tbl_setores_higiene'
-
-class Sala(models.Model):
-    id_sala = models.AutoField(primary_key=True)
-    setor = models.ForeignKey(Setor, on_delete=models.DO_NOTHING, db_column='id_setor')
-    nome_sala = models.CharField(max_length=255)
-
-    class Meta:
-        managed = False
-        db_table = 'if_tbl_sala_higiene'
-
-class RegistroHigiene(models.Model):
-    id_registro = models.AutoField(primary_key=True)
-    sala = models.ForeignKey(Sala, on_delete=models.DO_NOTHING, db_column='id_sala')
-    colaborador = models.CharField(max_length=255)
-    data_limpeza = models.DateField()
-    hora_limpeza = models.CharField(max_length=5)
-    id_tipo_limpeza = models.IntegerField()
-    obs = models.CharField(max_length=1000, blank=True, null=True)
-    portas = models.CharField(max_length=2, blank=True, null=True)
-    teto = models.CharField(max_length=2, blank=True, null=True)
-    paredes = models.CharField(max_length=2, blank=True, null=True)
-    janelas = models.CharField(max_length=2, blank=True, null=True)
-    piso = models.CharField(max_length=2, blank=True, null=True)
-    superficie_mobiliario = models.CharField(max_length=2, blank=True, null=True)
-    dispenser = models.CharField(max_length=2, blank=True, null=True)
-    id_criticidade = models.IntegerField(blank=True, null=True)
-    papel_hig = models.CharField(max_length=2, blank=True, null=True)
-    papel_toalha = models.CharField(max_length=2, blank=True, null=True)
-    alcool = models.CharField(max_length=2, blank=True, null=True)
-    sabonete = models.CharField(max_length=2, blank=True, null=True)
-
-    class Meta:
-        managed = False
-        db_table = 'if_tbl_registro_higiene'
-
 
 class IPPermitido(models.Model):
     ip_address = models.GenericIPAddressField(
@@ -53,7 +11,7 @@ class IPPermitido(models.Model):
         max_length=200,
         blank=True,
         verbose_name='Descrição',
-        help_text='Descrição do dispositivo/local (ex: Tablet Sala 1, Computador Recepção)'
+        help_text='Descrição do dispositivo/local (ex: Tablet Sala 1)'
     )
     ativo = models.BooleanField(
         default=True,
@@ -92,7 +50,7 @@ class DispositivoPermitido(models.Model):
         max_length=200,
         blank=True,
         verbose_name='Descricao',
-        help_text='Descricao do dispositivo/local (ex: Tablet Sala 1, Smartphone Setor B)'
+        help_text='Descricao do dispositivo/local (ex: Tablet Sala 1B)'
     )
     ativo = models.BooleanField(
         default=True,
@@ -118,3 +76,37 @@ class DispositivoPermitido(models.Model):
         if self.descricao:
             return f"{status} {self.identificador} - {self.descricao}"
         return f"{status} {self.identificador}"
+
+
+class UserRelatorio(models.Model):
+    username = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name='Usuário'
+    )
+    password = models.CharField(
+        max_length=255,
+        verbose_name='Senha'
+    )
+    edit = models.BooleanField(
+        default=False,
+        verbose_name='Permissão de Edição',
+        help_text='Se ativo, o usuário NÃO pode acessar a view de edição'
+    )
+    ativo = models.BooleanField(
+        default=True,
+        verbose_name='Ativo'
+    )
+    data_criacao = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Data de Criação'
+    )
+
+    class Meta:
+        verbose_name = 'Usuário de Relatório'
+        verbose_name_plural = 'Usuários de Relatório'
+        ordering = ['username']
+        db_table = 'users_relatorio'
+
+    def __str__(self):
+        return f"{self.username} {'(Bloqueado para edição)' if self.edit else ''}"

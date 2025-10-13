@@ -1,0 +1,5 @@
+Django==5.2.7
+python-dotenv==1.0.1
+oracledb==3.0.0
+gunicorn==22.0.0
+ whitenoise==6.5.0

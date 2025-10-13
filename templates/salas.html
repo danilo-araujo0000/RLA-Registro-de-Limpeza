@@ -1,51 +1,10 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Lista de Salas{% endblock %}
 
 {% block style %}
-.card {
-    background-color: #fff;
-    padding: 35px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.sala-item {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 10px;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.sala-item:hover {
-    background-color: #e7f3ff;
-    border-color: #0d6efd;
-    transform: translateX(5px);
-}
-.search-box {
-    margin-bottom: 20px;
-}
-.badge-setor {
-    color: white;
-    font-size: 0.85rem;
-}
-.setor-color-0 { background-color: #198754; }
-.setor-color-1 { background-color: #6610f2; }
-.setor-color-2 { background-color: #20c997; }
-.setor-color-3 { background-color: #d63384; }
-.setor-color-4 { background-color: #17a2b8; }
-.setor-color-5 { background-color: #fd7e14; }
-.setor-color-6 { background-color: #ffc107; }
-.setor-color-7 { background-color: #0d6efd; }
-.setor-color-8 { background-color: #20c997; }
-.setor-color-9 { background-color: #0dcaf0; }
-.setor-color-10 { background-color: #6c757d; }
-.setor-color-11 { background-color: #e83e8c; }
-.setor-color-12 { background-color: #9b59b6; }
-.setor-color-13 { background-color: #28a745; }
-.setor-color-14 { background-color: #3498db; }
-.setor-color-15 { background-color: #5a6268; }
+    <link rel="stylesheet" type="text/css" href="{% static 'css/salas.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -57,21 +16,37 @@
         </a>
     </div>
 
-    <div class="search-box position-relative">
-        <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
-            <i class="fas fa-search text-muted"></i>
-        </span>
-        <input type="text" id="searchInput" class="form-control form-control-lg" style="padding-left: 2.5rem;" placeholder="Pesquisar por sala ou setor...">
-        <span id="clearSearch" class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; display: none;">
-            <i class="fas fa-times"></i>
-        </span>
+    <div class="row g-3 mb-4">
+        <div class="col-lg-6">
+            <div class="search-box position-relative">
+                <span class="position-absolute top-50 start-0 translate-middle-y ms-3">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" id="searchInput" class="form-control form-control-lg" style="padding-left: 2.5rem;" placeholder="Pesquisar por sala...">
+                <span id="clearSearch" class="position-absolute top-50 end-0 translate-middle-y me-3" style="cursor: pointer; display: none;">
+                    <i class="fas fa-times"></i>
+                </span>
+            </div>
+        </div>
+        <div class="col-lg-6 d-flex align-items-center">
+            <div class="filter-container" id="setorFilters">
+                <button type="button" class="filter-badge setor-color-all active" data-setor="">
+                    <i class="fas fa-layer-group"></i> Todos os Setores
+                </button>
+                {% for setor in setores %}
+                <button type="button" class="filter-badge {{ setor.color }}" data-setor="{{ setor.slug }}">
+                    <i class="fas fa-building"></i> {{ setor.nome }}
+                </button>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 
     <div id="salas-container">
         {% for sala in salas %}
-        <div class="sala-item" onclick="window.location.href='{% url 'index_view' sala.id_sala %}'">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
+        <div class="sala-item" data-setor="{{ sala.setor_slug }}" onclick="window.location.href='{% url 'index_view' sala.id_sala %}'">
+            <div class="sala-content">
+                <div class="sala-info">
                     <h5 class="mb-1">
                         <i class="fas fa-door-open"></i> {{ sala.nome_sala }}
                     </h5>
@@ -79,8 +54,32 @@
                         <i class="fas fa-building"></i> {{ sala.nome_setor }}
                     </span>
                 </div>
-                <div>
-                    <i class="fas fa-chevron-right text-muted"></i>
+                <div class="sala-meta">
+                    <span class="sala-meta-chip">
+                        <span class="meta-text">
+                            <strong>Concorrente</strong>
+                            <span>
+                                {{ sala.ultima_concorrente }}
+                                {% if sala.ultima_concorrente_hora %}
+                                    &nbsp;{{ sala.ultima_concorrente_hora }}
+                                {% endif %}
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sala-meta-chip meta-terminal">
+                        <span class="meta-text">
+                            <strong>Terminal</strong>
+                            <span>
+                                {{ sala.ultima_terminal_data }}
+                                {% if sala.ultima_terminal_hora %}
+                                    &nbsp;{{ sala.ultima_terminal_hora }}
+                                {% endif %}
+                            </span>
+                        </span>
+                    </span>
+                </div>
+                <div class="sala-chevron">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
         </div>
@@ -97,24 +96,79 @@
     const salasContainer = document.getElementById('salas-container');
     const salaItems = salasContainer.querySelectorAll('.sala-item');
     const clearSearch = document.getElementById('clearSearch');
+    const setorFilters = document.getElementById('setorFilters');
+    const filterButtons = setorFilters ? Array.from(setorFilters.querySelectorAll('.filter-badge')) : [];
+    const allButton = filterButtons.find(btn => btn.dataset.setor === '');
+    const setorSelecionados = new Set();
 
-    searchInput.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        clearSearch.style.display = searchTerm ? 'block' : 'none';
+    function aplicarFiltros() {
+        const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        if (clearSearch) {
+            clearSearch.style.display = searchTerm ? 'block' : 'none';
+        }
 
         salaItems.forEach(item => {
             const text = item.textContent.toLowerCase();
-            if (text.includes(searchTerm)) {
+            const setor = item.getAttribute('data-setor');
+            const matchTexto = !searchTerm || text.includes(searchTerm);
+            const matchSetor = setorSelecionados.size === 0 || setorSelecionados.has(setor);
+
+            if (matchTexto && matchSetor) {
                 item.style.display = 'block';
             } else {
                 item.style.display = 'none';
             }
         });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', aplicarFiltros);
+    }
+
+    if (clearSearch) {
+        clearSearch.addEventListener('click', function() {
+            searchInput.value = '';
+            aplicarFiltros();
+        });
+    }
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const slug = button.dataset.setor || '';
+
+            if (slug === '') {
+                setorSelecionados.clear();
+                filterButtons.forEach(btn => {
+                    if (btn === allButton) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                aplicarFiltros();
+                return;
+            }
+
+            if (button.classList.contains('active')) {
+                button.classList.remove('active');
+                setorSelecionados.delete(slug);
+            } else {
+                button.classList.add('active');
+                setorSelecionados.add(slug);
+            }
+
+            if (allButton) {
+                if (setorSelecionados.size === 0) {
+                    allButton.classList.add('active');
+                } else {
+                    allButton.classList.remove('active');
+                }
+            }
+
+            aplicarFiltros();
+        });
     });
 
-    clearSearch.addEventListener('click', function() {
-        searchInput.value = '';
-        searchInput.dispatchEvent(new Event('input'));
-    });
+    aplicarFiltros();
 </script>
 {% endblock %}

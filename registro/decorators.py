@@ -1,14 +1,11 @@
 import logging
 from functools import wraps
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 logger = logging.getLogger(__name__)
 
 
 def get_client_ip(request):
-    """
-    Obtem o IP real do cliente, considerando proxies.
-    """
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0].strip()
@@ -18,9 +15,7 @@ def get_client_ip(request):
 
 
 def get_client_device_id(request):
-    """
-    Obtem o identificador do dispositivo enviado pelo aplicativo.
-    """
+
     device_id = request.headers.get('X-Device-Id')
     if not device_id:
         device_id = request.META.get('HTTP_X_DEVICE_ID')
@@ -89,3 +84,54 @@ def ip_whitelist_required():
         return _wrapped_view
 
     return decorator
+
+
+def relatorio_auth_required(view_func):
+    """
+    Decorator que verifica autenticação de usuários de relatório.
+
+    Uso:
+        @relatorio_auth_required
+        def my_view(request):
+            ...
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        user_id = request.session.get('relatorio_user_id')
+
+        if not user_id:
+            return redirect('login_relatorio_view')
+
+        from .models import UserRelatorio
+
+        try:
+            user = UserRelatorio.objects.get(id=user_id, ativo=True)
+            request.relatorio_user = user
+            return view_func(request, *args, **kwargs)
+        except UserRelatorio.DoesNotExist:
+            request.session.flush()
+            return redirect('login_relatorio_view')
+
+    return _wrapped_view
+
+
+def relatorio_edit_blocked(view_func):
+    """
+    Decorator que bloqueia acesso se o usuário tiver edit=True.
+    Deve ser usado após @relatorio_auth_required.
+
+    Uso:
+        @relatorio_auth_required
+        @relatorio_edit_blocked
+        def my_view(request):
+            ...
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if hasattr(request, 'relatorio_user') and request.relatorio_user.edit:
+            return render(request, 'erro_permissao.html', {
+                'mensagem': 'Você não tem permissão para acessar esta página.'
+            })
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped_view

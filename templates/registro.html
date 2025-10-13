@@ -1,337 +1,10 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Registro de Limpeza{% endblock %}
 
 {% block style %}
-.card {
-    background-color: #fff;
-    padding: 35px;
-    border-radius: 15px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border: none;
-    max-width: 800px;
-    margin: 20px auto;
-}
-#camposTerminal {
-    display: none;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border: 2px solid #dee2e6;
-    padding: 25px;
-    border-radius: 12px;
-    margin-top: 20px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.form-label {
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-.form-control, .form-select {
-    border-radius: 8px;
-    border: 1px solid #ced4da;
-    padding: 10px 15px;
-    font-size: 15px;
-    transition: all 0.3s ease;
-}
-.form-control:focus, .form-select:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.15);
-}
-.btn {
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    border: none;
-}
-.btn-primary {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-}
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
-}
-.btn-success {
-    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-.btn-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
-}
-.btn-secondary {
-    background: linear-gradient(135deg, #6c757d 0%, #545b62 100%);
-}
-.btn-secondary:hover {
-    transform: translateY(-2px);
-}
-.option-sim { background-color: #d4edda !important; color: #155724 !important; }
-.option-nao { background-color: #f8d7da !important; color: #721c24 !important; }
-.option-neutra { background-color: #e9ecef !important; color: #212529 !important; }
-.option-critico { background-color: #f8d7da !important; color: #721c24 !important; }
-.option-semi-critico { background-color: #fff3cd !important; color: #856404 !important; }
-.option-nao-critico { background-color: #cce5ff !important; color: #004085 !important; }
-
-.form-select.option-sim { background-color: #d4edda; color: #155724; }
-.form-select.option-nao { background-color: #f8d7da; color: #721c24; }
-.form-select.option-neutra { background-color: #e9ecef; color: #212529; }
-.form-select.option-critico { background-color: #f8d7da; color: #721c24; }
-.form-select.option-semi-critico { background-color: #fff3cd; color: #856404; }
-.form-select.option-nao-critico { background-color: #cce5ff; color: #004085; }
-
-.row-spacing {
-    margin-bottom: 15px;
-}
-
-.form-control:disabled {
-    background-color: #f1f3f5;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-.autocomplete-list {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background-color: #fff;
-    border: 2px solid #007bff;
-    border-radius: 8px;
-    height: 250px;
-    overflow-y: auto;
-    list-style: none;
-    padding: 0;
-    margin: 2px 0 0 0;
-    z-index: 1000;
-    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.2);
-    display: none;
-}
-
-.autocomplete-list li {
-    padding: 12px 16px;
-    cursor: pointer;
-    border-bottom: 1px solid #f1f1f1;
-    transition: all 0.2s ease;
-}
-
-.autocomplete-list li:last-child {
-    border-bottom: none;
-}
-
-.autocomplete-list li:hover {
-    background-color: #e7f3ff;
-    padding-left: 20px;
-}
-
-/* Modal */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
-    overflow: hidden;
-}
-
-.modal-overlay.show {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: #fff;
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.modal-header {
-    padding: 25px 30px;
-    border-bottom: 2px solid #dee2e6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f8f9fa;
-    flex: 0 0 auto;
-}
-
-.modal-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 24px;
-    font-weight: 600;
-}
-
-.btn-close-modal {
-    background: none;
-    border: none;
-    font-size: 40px;
-    cursor: pointer;
-    color: #999;
-    line-height: 1;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-}
-
-.btn-close-modal:hover {
-    color: #333;
-}
-
-.modal-body {
-    padding: 0;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background-color: #fff;
-    min-height: 0;
-    -webkit-overflow-scrolling: touch;
-}
-
-.modal-footer {
-    padding: 25px 30px;
-    border-top: 2px solid #dee2e6;
-    background-color: #f8f9fa;
-    flex: 0 0 auto;
-}
-
-.item-limpeza {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 30px;
-    border-bottom: 1px solid #e9ecef;
-    background-color: #fff;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.item-limpeza:hover {
-    background-color: #f8f9fa;
-    transform: translateX(5px);
-}
-
-.item-limpeza:last-child {
-    border-bottom: none;
-}
-
-.item-label {
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    font-size: 18px;
-    flex: 1;
-}
-
-.item-opcoes {
-    display: flex;
-    gap: 25px;
-}
-
-.radio-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    margin: 0;
-    font-size: 16px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-}
-
-.radio-label:hover {
-    background-color: #f1f3f5;
-}
-
-.radio-label input[type="radio"] {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-}
-
-.radio-label input[type="radio"]:checked {
-    accent-color: #28a745;
-}
-
-.item-limpeza.erro {
-    background-color: #fff3cd;
-    border-left: 5px solid #ffc107;
-    animation: shake 0.5s;
-}
-
-.item-limpeza.completo {
-    background-color: #d4edda;
-    border-left: 5px solid #28a745;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
-
-.btn-success.w-100 {
-    position: relative;
-    overflow: hidden;
-}
-
-.btn-success.w-100::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-}
-
-.btn-success.w-100:hover::before {
-    width: 300px;
-    height: 300px;
-}
-
-.mb-3 {
-    margin-bottom: 1.5rem !important;
-    animation: fadeInUp 0.5s ease-out;
-}
-
-.mb-4 {
-    margin-bottom: 2rem !important;
-    animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-#camposTerminal .mb-3 {
-    margin-bottom: 1.25rem !important;
-}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/registro.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -368,13 +41,19 @@
 
         <div class="mb-3">
             <label class="form-label">
-                <i class="fas fa-user" style="color: #6c757d;"></i> Colaborador
+                <i class="fas fa-users" style="color: #6c757d;"></i> Colaboradores
             </label>
-            <div style="position: relative;">
-                <input type="text" name="colaborador" id="colaborador" class="form-control" autocomplete="off" required placeholder="nome do colaborador...">
-                <input type="hidden" name="colaborador_primeiro_nome" id="colaborador_primeiro_nome">
+
+            <div id="aviso-container"></div>
+
+            <div id="colaboradores-container"></div>
+
+            <div style="position: relative;" id="search-container">
+                <input type="text" id="colaborador-search" class="form-control" autocomplete="off" placeholder="Selecionar colaborador..." readonly>
                 <ul id="colaborador-list" class="autocomplete-list"></ul>
             </div>
+
+            <input type="hidden" name="colaboradores_json" id="colaboradores_json" required>
         </div>
 
         <div class="row">
@@ -425,14 +104,7 @@
                 </button>
             </div>
 
-            <div class="mb-3">
-                <button type="button" class="btn btn-success w-100" id="btnAbrirModalReposicao" style="font-size: 16px; padding: 14px;">
-                    <i class="fas fa-box"></i> REPOSIÇÃO
-                    <span id="contadorReposicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
-                </button>
-            </div>
-
-            <!-- Campos hidden para enviar os dados -->
+            
             <input type="hidden" name="portas" id="portas_hidden" value="">
             <input type="hidden" name="teto" id="teto_hidden" value="">
             <input type="hidden" name="paredes" id="paredes_hidden" value="">
@@ -441,20 +113,28 @@
             <input type="hidden" name="superficie_mobiliario" id="superficie_mobiliario_hidden" value="">
             <input type="hidden" name="dispenser" id="dispenser_hidden" value="">
 
-            <!-- Campo de validação para itens de limpeza -->
+            
             <input type="text" id="validacao_itens_limpeza" style="position: absolute; opacity: 0; pointer-events: none;" tabindex="-1">
-
-            <!-- Campos hidden para reposição -->
-            <input type="hidden" name="papel_hig" id="papel_hig_hidden" value="">
-            <input type="hidden" name="papel_toalha" id="papel_toalha_hidden" value="">
-            <input type="hidden" name="alcool" id="alcool_hidden" value="">
-            <input type="hidden" name="sabonete" id="sabonete_hidden" value="">
-
-            <!-- Campo de validação para reposição -->
-            <input type="text" id="validacao_reposicao" style="position: absolute; opacity: 0; pointer-events: none;" tabindex="-1">
         </div>
 
-        <!-- Modal de Itens de Limpeza -->
+        
+        <div class="mb-3">
+            <button type="button" class="btn btn-repo w-100" id="btnAbrirModalReposicao" style="font-size: 16px; padding: 14px;">
+                <i class="fas fa-box"></i> Selecionar itens de REPOSIÇÃO
+                <span id="contadorReposicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+            </button>
+        </div>
+
+        
+        <input type="hidden" name="papel_hig" id="papel_hig_hidden" value="">
+        <input type="hidden" name="papel_toalha" id="papel_toalha_hidden" value="">
+        <input type="hidden" name="alcool" id="alcool_hidden" value="">
+        <input type="hidden" name="sabonete" id="sabonete_hidden" value="">
+
+        
+        <input type="text" id="validacao_reposicao" style="position: absolute; opacity: 0; pointer-events: none;" tabindex="-1">
+
+        
         <div id="modalItensLimpeza" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -554,7 +234,7 @@
             </div>
         </div>
 
-        <!-- Modal de Reposição -->
+        
         <div id="modalReposicao" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -633,338 +313,12 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    // Lista de todos os colaboradores carregada do backend
-    const todosColaboradores = {{ colaboradores|safe }};
-
-    function preencherDataHora() {
-        const agora = new Date();
-        document.getElementById("data").value = agora.toISOString().split('T')[0];
-        const horas = String(agora.getHours()).padStart(2, '0');
-        const minutos = String(agora.getMinutes()).padStart(2, '0');
-        document.getElementById("hora_limpeza").value = `${horas}:${minutos}`;
-    }
-
-    function toggleCamposTerminal() {
-        const tipoLimpeza = document.getElementById("tipo_limpeza").value;
-        const camposTerminal = document.getElementById("camposTerminal");
-        const criticidade = document.getElementById("criticidade");
-
-        if (tipoLimpeza === "2") { // 2 = Terminal
-            camposTerminal.style.display = "block";
-            criticidade.setAttribute("required", "required");
-        } else {
-            camposTerminal.style.display = "none";
-            criticidade.removeAttribute("required");
-
-            // Limpar itens do modal ao mudar para concorrente
-            const itens = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
-            itens.forEach(item => {
-                document.getElementById(`${item}_hidden`).value = '';
-                const radios = document.querySelectorAll(`input[name="modal_${item}"]`);
-                radios.forEach(radio => radio.checked = false);
-            });
-
-            // Limpar itens de reposição
-            const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-            itensReposicao.forEach(item => {
-                document.getElementById(`${item}_hidden`).value = '';
-                const radios = document.querySelectorAll(`input[name="modal_${item}"]`);
-                radios.forEach(radio => radio.checked = false);
-            });
-
-            // Esconder contadores
-            document.getElementById('contadorItens').style.display = 'none';
-            document.getElementById('contadorReposicao').style.display = 'none';
-        }
-    }
-
-    function abrirModal() {
-        document.getElementById('modalItensLimpeza').classList.add('show');
-        // Remover marcações de erro ao abrir
-        document.querySelectorAll('.item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-    }
-
-    function fecharModal() {
-        document.getElementById('modalItensLimpeza').classList.remove('show');
-        // Limpar marcações ao fechar
-        document.querySelectorAll('.item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-    }
-
-    function confirmarItensLimpeza() {
-        const itens = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
-        let todosPreenchidos = true;
-        const itensNaoPreenchidos = [];
-
-        // Limpar marcações anteriores
-        document.querySelectorAll('#modalItensLimpeza .item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-
-        itens.forEach(item => {
-            const radioSelecionado = document.querySelector(`input[name="modal_${item}"]:checked`);
-            const itemDiv = document.querySelector(`input[name="modal_${item}"]`).closest('.item-limpeza');
-
-            if (radioSelecionado) {
-                document.getElementById(`${item}_hidden`).value = radioSelecionado.value;
-                itemDiv.classList.add('completo');
-            } else {
-                todosPreenchidos = false;
-                itensNaoPreenchidos.push(item);
-                itemDiv.classList.add('erro');
-            }
-        });
-
-        if (!todosPreenchidos) {
-            // Scroll para o primeiro item não preenchido
-            const primeiroErro = document.querySelector('#modalItensLimpeza .item-limpeza.erro');
-            if (primeiroErro) {
-                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return;
-        }
-
-        // Atualizar contador no botão
-        const contador = document.getElementById('contadorItens');
-        contador.textContent = `${itens.length}/${itens.length}`;
-        contador.style.display = 'inline';
-
-        // Remover validação
-        const campoValidacao = document.getElementById('validacao_itens_limpeza');
-        campoValidacao.removeAttribute('required');
-        campoValidacao.setCustomValidity('');
-
-        fecharModal();
-    }
-
-    function abrirModalReposicao() {
-        document.getElementById('modalReposicao').classList.add('show');
-        // Remover marcações de erro ao abrir
-        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-    }
-
-    function fecharModalReposicao() {
-        document.getElementById('modalReposicao').classList.remove('show');
-        // Limpar marcações ao fechar
-        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-    }
-
-    function confirmarItensReposicao() {
-        const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-        let todosPreenchidos = true;
-
-        // Limpar marcações anteriores
-        document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-            item.classList.remove('erro', 'completo');
-        });
-
-        itens.forEach(item => {
-            const radioSelecionado = document.querySelector(`input[name="modal_${item}"]:checked`);
-            const itemDiv = document.querySelector(`input[name="modal_${item}"]`).closest('.item-limpeza');
-
-            if (radioSelecionado) {
-                document.getElementById(`${item}_hidden`).value = radioSelecionado.value;
-                itemDiv.classList.add('completo');
-            } else {
-                todosPreenchidos = false;
-                itemDiv.classList.add('erro');
-            }
-        });
-
-        if (!todosPreenchidos) {
-            // Scroll para o primeiro item não preenchido
-            const primeiroErro = document.querySelector('#modalReposicao .item-limpeza.erro');
-            if (primeiroErro) {
-                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return;
-        }
-
-        // Atualizar contador no botão
-        const contador = document.getElementById('contadorReposicao');
-        contador.textContent = `${itens.length}/${itens.length}`;
-        contador.style.display = 'inline';
-
-        // Remover validação
-        const campoValidacao = document.getElementById('validacao_reposicao');
-        campoValidacao.removeAttribute('required');
-        campoValidacao.setCustomValidity('');
-
-        fecharModalReposicao();
-    }
-
-    function updateSelectColor(selectElement) {
-        selectElement.classList.remove('option-sim', 'option-nao', 'option-neutra', 'option-critico', 'option-semi-critico', 'option-nao-critico');
-        if (selectElement.value === 'S') {
-            selectElement.classList.add('option-sim');
-        } else if (selectElement.value === 'N') {
-            selectElement.classList.add('option-nao');
-        } else if (selectElement.value === '1') { // 1 = Crítico
-            selectElement.classList.add('option-critico');
-        } else if (selectElement.value === '2') { // 2 = Semi-crítico
-            selectElement.classList.add('option-semi-critico');
-        } else if (selectElement.value === '3') { // 3 = Não crítico
-            selectElement.classList.add('option-nao-critico');
-        } else {
-            selectElement.classList.add('option-neutra');
-        }
-    }
-
-    function filtrarColaboradores(termo) {
-        const termoUpper = termo.toUpperCase();
-        let resultados;
-
-        if (termo.length === 0) {
-            resultados = [...todosColaboradores].sort((a, b) =>
-                a.primeiro_nome.localeCompare(b.primeiro_nome)
-            );
-        } else {
-            resultados = todosColaboradores
-                .filter(colab => colab.primeiro_nome.toUpperCase().includes(termoUpper))
-                .sort((a, b) => a.primeiro_nome.localeCompare(b.primeiro_nome));
-        }
-
-        const lista = document.getElementById('colaborador-list');
-        lista.innerHTML = '';
-
-        if (resultados.length > 0) {
-            resultados.forEach(colaborador => {
-                const li = document.createElement('li');
-                li.textContent = colaborador.primeiro_nome;
-                li.dataset.primeiroNome = colaborador.primeiro_nome;
-                li.dataset.nomeCompleto = colaborador.nome_completo;
-                li.addEventListener('click', () => selecionarColaborador(colaborador));
-                lista.appendChild(li);
-            });
-            lista.style.display = 'block';
-        } else {
-            lista.style.display = 'none';
-        }
-    }
-
-    function mostrarTodosColaboradores() {
-        filtrarColaboradores('');
-    }
-
-    function selecionarColaborador(colaborador) {
-        document.getElementById('colaborador').value = colaborador.primeiro_nome;
-        document.getElementById('colaborador_primeiro_nome').value = colaborador.primeiro_nome;
-        document.getElementById('colaborador-list').style.display = 'none';
-    }
-
-    window.onload = () => {
-        preencherDataHora();
-        document.getElementById("tipo_limpeza").addEventListener("change", toggleCamposTerminal);
-        toggleCamposTerminal();
-
-        const terminalSelects = document.querySelectorAll('#camposTerminal .form-select');
-        terminalSelects.forEach(select => {
-            updateSelectColor(select);
-            select.addEventListener('change', () => updateSelectColor(select));
-        });
-
-        const inputColaborador = document.getElementById('colaborador');
-        inputColaborador.addEventListener('input', (e) => {
-            filtrarColaboradores(e.target.value);
-        });
-        inputColaborador.addEventListener('focus', () => {
-            mostrarTodosColaboradores();
-        });
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('#colaborador') && !e.target.closest('#colaborador-list')) {
-                document.getElementById('colaborador-list').style.display = 'none';
-            }
-        });
-
-        document.getElementById('btnAbrirModal').addEventListener('click', abrirModal);
-        document.getElementById('btnFecharModal').addEventListener('click', fecharModal);
-        document.getElementById('btnConfirmarModal').addEventListener('click', confirmarItensLimpeza);
-
-        // Event listeners para modal de reposição
-        document.getElementById('btnAbrirModalReposicao').addEventListener('click', abrirModalReposicao);
-        document.getElementById('btnFecharModalReposicao').addEventListener('click', fecharModalReposicao);
-        document.getElementById('btnConfirmarModalReposicao').addEventListener('click', confirmarItensReposicao);
-
-        const radios = document.querySelectorAll('#modalItensLimpeza input[type="radio"]');
-        radios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                const itemDiv = radio.closest('.item-limpeza');
-                itemDiv.classList.remove('erro');
-            });
-        });
-
-        const radiosReposicao = document.querySelectorAll('#modalReposicao input[type="radio"]');
-        radiosReposicao.forEach(radio => {
-            radio.addEventListener('change', () => {
-                const itemDiv = radio.closest('.item-limpeza');
-                itemDiv.classList.remove('erro');
-            });
-        });
-
-        document.getElementById('formRegistro').addEventListener('submit', (e) => {
-            const tipoLimpeza = document.getElementById('tipo_limpeza').value;
-
-            if (tipoLimpeza === '2') { // Terminal
-                // Validar itens de limpeza
-                const itensLimpeza = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
-                let itensLimpezaVazio = false;
-
-                itensLimpeza.forEach(item => {
-                    const valor = document.getElementById(`${item}_hidden`).value;
-                    if (!valor || valor === '') {
-                        itensLimpezaVazio = true;
-                    }
-                });
-
-                if (itensLimpezaVazio) {
-                    e.preventDefault();
-                    const campoValidacao = document.getElementById('validacao_itens_limpeza');
-                    campoValidacao.setAttribute('required', 'required');
-                    campoValidacao.setCustomValidity('Por favor, preencha todos os itens de limpeza');
-                    campoValidacao.reportValidity();
-
-                    // Abrir modal automaticamente
-                    setTimeout(() => {
-                        abrirModal();
-                    }, 100);
-                    return false;
-                }
-
-                // Validar itens de reposição
-                const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-                let reposicaoVazio = false;
-
-                itensReposicao.forEach(item => {
-                    const valor = document.getElementById(`${item}_hidden`).value;
-                    if (!valor || valor === '') {
-                        reposicaoVazio = true;
-                    }
-                });
-
-                if (reposicaoVazio) {
-                    e.preventDefault();
-                    const campoValidacao = document.getElementById('validacao_reposicao');
-                    campoValidacao.setAttribute('required', 'required');
-                    campoValidacao.setCustomValidity('Por favor, preencha todos os itens de reposição');
-                    campoValidacao.reportValidity();
-
-                    // Abrir modal automaticamente
-                    setTimeout(() => {
-                        abrirModalReposicao();
-                    }, 100);
-                    return false;
-                }
-            }
-        });
-    };
-</script>
+    {{ block.super }}
+    <script>
+        // Pass data from Django template to JavaScript
+        window.registroData = {
+            colaboradores: {{ colaboradores|safe }}
+        };
+    </script>
+    <script src="{% static 'js/registro.js' %}"></script>
 {% endblock %}

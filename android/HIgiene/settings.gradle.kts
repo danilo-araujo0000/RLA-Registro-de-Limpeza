@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "HIgiene"
+rootProject.name = "RLA-RegistroLimpezaAMEs"
 include(":app")

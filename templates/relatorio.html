@@ -1,248 +1,10 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Relatório de Limpeza{% endblock %}
 
 {% block style %}
-.container {
-    max-width: 98% !important;
-}
-.card {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.table-container {
-    overflow-x: auto;
-    max-height: 75vh;
-    overflow-y: auto;
-}
-.table {
-    font-size: 0.95rem;
-    margin-bottom: 0;
-    border-collapse: collapse;
-}
-.table th {
-    background-color: #495057;
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    white-space: nowrap;
-    font-size: 0.9rem;
-    padding: 12px;
-    border: 1px solid #6c757d !important;
-}
-.table td {
-    padding: 12px 8px;
-    vertical-align: middle;
-    border: 1px solid #dee2e6 !important;
-}
-.table tbody tr {
-    border-bottom: 2px solid #e9ecef;
-}
-.table tbody tr:hover {
-    background-color: #f8f9fa;
-}
-.btn-delete {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-}
-.obs-cell {
-    max-width: 200px;
-    width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    cursor: pointer;
-}
-.obs-cell:hover {
-    background-color: #fff3cd !important;
-}
-.badge-terminal {
-    background-color: #ffc107;
-    color: #000;
-}
-.badge-concorrente {
-    background-color: #17a2b8;
-    color: #fff;
-}
-.filter-section {
-    background-color: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-.btn-info-icon {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-}
-.badge-s { background-color: #28a745; color: white; }
-.badge-n { background-color: #dc3545; color: white; }
-.badge-na { background-color: #6c757d; color: white; }
-select.form-select-sm {
-    font-size: 0.85rem;
-    padding: 2px 5px;
-}
-
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 2000;
-    overflow: hidden;
-}
-
-.modal-overlay.show {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-overlay .modal-content {
-    background-color: #fff;
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    overflow: hidden;
-}
-
-.modal-overlay .modal-header {
-    padding: 25px 30px;
-    border-bottom: 2px solid #dee2e6;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: #f8f9fa;
-    flex: 0 0 auto;
-}
-
-.modal-overlay .modal-header h3 {
-    margin: 0;
-    color: #333;
-    font-size: 24px;
-    font-weight: 600;
-}
-
-.modal-overlay .btn-close-modal {
-    background: none;
-    border: none;
-    font-size: 40px;
-    cursor: pointer;
-    color: #999;
-    line-height: 1;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-}
-
-.modal-overlay .btn-close-modal:hover {
-    color: #333;
-}
-
-.modal-overlay .modal-body {
-    padding: 0;
-    flex: 1 1 auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    background-color: #fff;
-    min-height: 0;
-    -webkit-overflow-scrolling: touch;
-}
-
-.modal-overlay .modal-footer {
-    padding: 25px 30px;
-    border-top: 2px solid #dee2e6;
-    background-color: #f8f9fa;
-    flex: 0 0 auto;
-}
-
-.modal-overlay .item-limpeza {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 30px;
-    border-bottom: 1px solid #e9ecef;
-    background-color: #fff;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.modal-overlay .item-limpeza:hover {
-    background-color: #f8f9fa;
-    transform: translateX(5px);
-}
-
-.modal-overlay .item-limpeza:last-child {
-    border-bottom: none;
-}
-
-.modal-overlay .item-label {
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-    font-size: 18px;
-    flex: 1;
-}
-
-.modal-overlay .item-opcoes {
-    display: flex;
-    gap: 25px;
-}
-
-.modal-overlay .radio-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    margin: 0;
-    font-size: 16px;
-    padding: 8px 16px;
-    border-radius: 8px;
-    transition: all 0.2s ease;
-}
-
-.modal-overlay .radio-label:hover {
-    background-color: #f1f3f5;
-}
-
-.modal-overlay .radio-label input[type="radio"] {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-}
-
-.modal-overlay .radio-label input[type="radio"]:checked {
-    accent-color: #28a745;
-}
-
-.modal-overlay .item-limpeza.erro {
-    background-color: #fff3cd;
-    border-left: 5px solid #ffc107;
-    animation: shake 0.5s;
-}
-
-.modal-overlay .item-limpeza.completo {
-    background-color: #d4edda;
-    border-left: 5px solid #28a745;
-}
-
-@keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    75% { transform: translateX(5px); }
-}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/relatorio.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -254,21 +16,12 @@ select.form-select-sm {
     </div>
 
     <div class="filter-section">
-        <div class="row">
-            <div class="col-md-3 mb-3">
+        <div class="row g-3">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label"><i class="fas fa-search"></i> Pesquisar</label>
                 <input type="text" id="searchInput" class="form-control" placeholder="Sala, setor, colaborador...">
             </div>
-            <div class="col-md-3 mb-3">
-                <label class="form-label"><i class="fas fa-building"></i> Setor</label>
-                <select id="setorFilter" class="form-select">
-                    <option value="">Todos</option>
-                    {% for setor in setores %}
-                    <option value="{{ setor }}">{{ setor }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label"><i class="fas fa-broom"></i> Tipo</label>
                 <select id="tipoFilter" class="form-select">
                     <option value="">Todos</option>
@@ -276,7 +29,7 @@ select.form-select-sm {
                     <option value="concorrente">Concorrente</option>
                 </select>
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-lg-3 col-md-6">
                 <label class="form-label"><i class="fas fa-sort"></i> Ordenar por</label>
                 <select id="sortBy" class="form-select">
                     <option value="data_desc">Data (Mais recente)</option>
@@ -286,14 +39,47 @@ select.form-select-sm {
                 </select>
             </div>
         </div>
-        <div class="row">
-            <div class="col-md-3 mb-3">
+        <div class="row g-3 mt-2">
+            <div class="col-md-3">
                 <label class="form-label"><i class="fas fa-calendar"></i> Data Início</label>
                 <input type="date" id="dataInicio" class="form-control">
             </div>
-            <div class="col-md-3 mb-3">
+            <div class="col-md-3">
                 <label class="form-label"><i class="fas fa-calendar"></i> Data Fim</label>
                 <input type="date" id="dataFim" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label d-block"><i class="fas fa-building"></i> Setores</label>
+                <div class="border rounded" style="background-color: #fff; position: relative;">
+                    <button type="button" class="btn w-100 text-start d-flex justify-content-between align-items-center" id="toggleSetores" style="border: none; background: transparent; padding: 8px 12px;">
+                        <span style="font-size: 0.9rem;">Selecionar setores</span>
+                        <i class="fas fa-chevron-down" id="chevronSetores" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <div id="setoresList" class="border-top" style="max-height: 300px; overflow-y: auto; display: none; position: absolute; z-index: 1000; background: white; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <div class="p-3">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="setorTodos" data-setor="" data-index="-1" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2" for="setorTodos" style="cursor: pointer;">
+                                    <span class="setor-badge setor-color-all">
+                                        <i class="fas fa-layer-group"></i> Todos
+                                    </span>
+                                </label>
+                            </div>
+                            <hr class="my-2">
+                            {% for setor in setores %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input setor-checkbox" type="checkbox" id="setor{{ setor.id }}" data-setor="{{ setor.nome }}" data-id="{{ setor.id }}" data-color="{{ setor.color }}">
+                                <label class="form-check-label d-flex align-items-center gap-2" for="setor{{ setor.id }}" style="cursor: pointer;">
+                                    <span class="setor-badge {{ setor.color }}" data-setor="{{ setor.nome }}">
+                                        <i class="fas fa-building"></i> {{ setor.nome }}
+                                    </span>
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="setorFilter" value="">
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center">
@@ -311,31 +97,49 @@ select.form-select-sm {
                     <th style="width: 50px;">ID</th>
                     <th style="width: 120px;">Setor</th>
                     <th style="width: 200px;">Sala</th>
-                    <th style="width: 150px;">Colaborador</th>
-                    <th style="width: 110px;">Data</th>
-                    <th style="width: 80px;">Hora</th>
+                    <th style="width: 250px;">Colaborador</th>
                     <th style="width: 100px;">Tipo</th>
                     <th style="width: 120px;">Criticidade</th>
                     <th style="min-width: 150px;">Observações</th>
+                    <th style="width: 180px;">Data e Hora</th>
                     <th style="width: 180px;">Ações</th>
                 </tr>
             </thead>
-            <tbody id="tableBody">
+                        <tbody id="tableBody">
                 {% for registro in registros %}
                 <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}" data-data="{{ registro.data_limpeza|date:'Y-m-d' }}" data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
                     <td>{{ registro.id_registro }}</td>
-                    <td>{{ registro.nome_setor }}</td>
+                    <td>
+                        <span class="setor-badge {{ registro.setor_color }}" data-setor="{{ registro.nome_setor }}">
+                            <i class="fas fa-building"></i> {{ registro.nome_setor }}
+                        </span>
+                    </td>
                     <td><strong>{{ registro.nome_sala }}</strong></td>
-                    <td>{{ registro.colaborador }}</td>
-                    <td>{{ registro.data_limpeza|date:"d/m/Y" }}</td>
-                    <td>{{ registro.hora_limpeza }}</td>
+                    <td style="white-space: pre-line;">{{ registro.colaborador }}</td>
                     <td>
                         <span class="badge badge-{{ registro.tipo_limpeza }}">{{ registro.tipo_limpeza|upper }}</span>
                     </td>
-                    <td>{% if registro.criticidade and registro.criticidade != 'NA' %}{{ registro.criticidade }}{% else %}-{% endif %}</td>
+                    <td>
+                        {% if registro.criticidade and registro.criticidade != 'NA' %}
+                            {% with crit_slug=registro.criticidade|slugify %}
+                                {% if crit_slug == 'critico' %}
+                                    <span class="criticidade-badge criticidade-critico">{{ registro.criticidade }}</span>
+                                {% elif crit_slug == 'semi-critico' %}
+                                    <span class="criticidade-badge criticidade-semi-critico">{{ registro.criticidade }}</span>
+                                {% elif crit_slug == 'nao-critico' %}
+                                    <span class="criticidade-badge criticidade-nao-critico">{{ registro.criticidade }}</span>
+                                {% else %}
+                                    <span class="criticidade-badge criticidade-desconhecida">{{ registro.criticidade }}</span>
+                                {% endif %}
+                            {% endwith %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
                     <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ registro.obs }}">
                         {{ registro.obs|default:"-" }}
                     </td>
+                    <td>{{ registro.data_limpeza|date:"d/m" }} às {{ registro.hora_limpeza }}</td>
                     <td>
                         <div class="d-flex">
                             <button class="btn btn-info btn-sm" onclick="mostrarItensLimpeza({{ registro.id_registro }})">
@@ -349,7 +153,7 @@ select.form-select-sm {
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="10" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
+                    <td colspan="9" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -367,16 +171,34 @@ select.form-select-sm {
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-users"></i> Colaboradores
+                        <small class="text-muted"></small>
+                    </label>
+
+                    
+                    <div id="avisoContainerEdit"></div>
+
+                    
+                    <div id="colaboradoresContainerEdit"></div>
+
+                    
+                    <div style="position: relative;" id="searchContainerEdit">
+                        <input type="text" id="colaboradorSearchEdit" class="form-control" autocomplete="off" placeholder="Selecionar colaborador..." readonly>
+                        <ul id="colaboradorListEdit" class="autocomplete-list"></ul>
+                    </div>
+
+                    
+                    <input type="hidden" id="colaboradoresJsonEdit" required>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Colaborador</label>
-                        <input type="text" id="editColaborador" class="form-control">
-                    </div>
-                    <div class="col-md-3 mb-3">
                         <label class="form-label">Data</label>
                         <input type="date" id="editData" class="form-control">
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label class="form-label">Hora</label>
                         <input type="time" id="editHora" class="form-control">
                     </div>
@@ -408,12 +230,12 @@ select.form-select-sm {
                             <span id="contadorItensEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
                         </button>
                     </div>
-                    <div class="mb-3">
-                        <button type="button" class="btn btn-success w-100" id="btnAbrirModalEdicaoReposicao" style="font-size: 16px; padding: 14px;">
-                            <i class="fas fa-box"></i> REPOSIÇÃO
-                            <span id="contadorReposicaoEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
-                        </button>
-                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-success w-100" id="btnAbrirModalEdicaoReposicao" style="font-size: 16px; padding: 14px;">
+                        <i class="fas fa-box"></i> REPOSIÇÃO
+                        <span id="contadorReposicaoEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+                    </button>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Observações</label>
@@ -455,16 +277,18 @@ select.form-select-sm {
 </div>
 
 <div class="modal fade" id="itensLimpezaModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-info"></i> Itens do Registro #<span id="itensLimpezaRegistroId"></span>
-                </h5>
+                <div>
+                    <h5 class="modal-title mb-0">
+                        <i class="fas fa-clipboard-list"></i> Detalhes do Registro
+                    </h5>
+                    <small class="text-white-50">ID #<span id="itensLimpezaRegistroId"></span></small>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="itensLimpezaBody">
-                <!-- Content will be populated by javascript -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
@@ -630,7 +454,6 @@ select.form-select-sm {
 {% block scripts %}
 <script>
     const searchInput = document.getElementById('searchInput');
-    const setorFilter = document.getElementById('setorFilter');
     const tipoFilter = document.getElementById('tipoFilter');
     const sortBy = document.getElementById('sortBy');
     const dataInicio = document.getElementById('dataInicio');
@@ -638,6 +461,16 @@ select.form-select-sm {
     const clearFilters = document.getElementById('clearFilters');
     const tableBody = document.getElementById('tableBody');
     const resultCount = document.getElementById('resultCount');
+    const setorTodos = document.getElementById('setorTodos');
+    const setorCheckboxes = Array.from(document.querySelectorAll('.setor-checkbox'));
+    const setorBadges = Array.from(document.querySelectorAll('.setor-badge'));
+    const setorColors = [
+        'setor-color-0', 'setor-color-1', 'setor-color-2', 'setor-color-3',
+        'setor-color-4', 'setor-color-5', 'setor-color-6', 'setor-color-7',
+        'setor-color-8', 'setor-color-9', 'setor-color-10', 'setor-color-11',
+        'setor-color-12', 'setor-color-13', 'setor-color-14', 'setor-color-15'
+    ];
+    const setorColorMap = {};
 
     let allRows = Array.from(tableBody.querySelectorAll('tr'));
 
@@ -658,9 +491,19 @@ select.form-select-sm {
     }
 
     function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const selectedSetor = setorFilter.value;
+        const searchTerm = searchInput.value.toLowerCase().trim();
         const selectedTipo = tipoFilter.value;
+
+        const selectedSetores = [];
+        if (setorTodos.checked) {
+            selectedSetores.push('todos');
+        } else {
+            setorCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedSetores.push(checkbox.dataset.setor);
+                }
+            });
+        }
 
         let visibleCount = 0;
 
@@ -670,7 +513,7 @@ select.form-select-sm {
             const tipo = row.dataset.tipo;
 
             const matchSearch = text.includes(searchTerm);
-            const matchSetor = !selectedSetor || setor === selectedSetor;
+            const matchSetor = selectedSetores.includes('todos') || selectedSetores.includes(setor);
             const matchTipo = !selectedTipo || tipo === selectedTipo;
 
             if (matchSearch && matchSetor && matchTipo) {
@@ -703,8 +546,41 @@ select.form-select-sm {
         applyFilters();
     }
 
+    setorCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                setorTodos.checked = false;
+            }
+            applyFilters();
+        });
+    });
+
+    setorTodos.addEventListener('change', () => {
+        if (setorTodos.checked) {
+            setorCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        applyFilters();
+    });
+
+    const toggleSetores = document.getElementById('toggleSetores');
+    const setoresList = document.getElementById('setoresList');
+    const chevronSetores = document.getElementById('chevronSetores');
+
+    toggleSetores.addEventListener('click', () => {
+        if (setoresList.style.display === 'none') {
+            setoresList.style.display = 'block';
+            chevronSetores.classList.remove('fa-chevron-down');
+            chevronSetores.classList.add('fa-chevron-up');
+        } else {
+            setoresList.style.display = 'none';
+            chevronSetores.classList.remove('fa-chevron-up');
+            chevronSetores.classList.add('fa-chevron-down');
+        }
+    });
+
     searchInput.addEventListener('input', applyFilters);
-    setorFilter.addEventListener('change', applyFilters);
     tipoFilter.addEventListener('change', applyFilters);
     dataInicio.addEventListener('change', function() {
         const params = new URLSearchParams(window.location.search);
@@ -756,6 +632,155 @@ select.form-select-sm {
     };
     let currentEditId = null;
     let currentRegistroData = null;
+
+    
+    let colaboradoresSelecionadosEdit = [];
+    const MAX_COLABORADORES = 5;
+    
+    const todosColaboradoresEdit = {{ colaboradores|safe }} || [];
+
+    function mostrarAvisoEdit(mensagem) {
+        const avisoContainer = document.getElementById('avisoContainerEdit');
+        const aviso = document.createElement('div');
+        aviso.className = 'aviso-simples';
+        aviso.textContent = mensagem;
+        aviso.style.cssText = 'background-color: #fff3cd; color: #856404; border: 2px solid #ffc107; padding: 12px 16px; border-radius: 8px; margin-bottom: 15px; font-weight: 600; text-align: center;';
+        avisoContainer.appendChild(aviso);
+
+        setTimeout(() => {
+            aviso.remove();
+        }, 3000);
+    }
+
+    function adicionarColaboradorEdit(colaborador) {
+        if (colaboradoresSelecionadosEdit.length >= MAX_COLABORADORES) {
+            mostrarAvisoEdit(`Você só pode adicionar até ${MAX_COLABORADORES} colaboradores.`);
+            return;
+        }
+
+        if (colaboradoresSelecionadosEdit.find(c => c.cd_usuario === colaborador.cd_usuario)) {
+            mostrarAvisoEdit('Já adicionado');
+            return;
+        }
+
+        colaboradoresSelecionadosEdit.push(colaborador);
+        renderizarColaboradoresEdit();
+        atualizarJSONEdit();
+
+        document.getElementById('colaboradorSearchEdit').value = '';
+        document.getElementById('colaboradorListEdit').style.display = 'none';
+
+        if (colaboradoresSelecionadosEdit.length >= MAX_COLABORADORES) {
+            document.getElementById('searchContainerEdit').style.display = 'none';
+        }
+    }
+
+    function removerColaboradorEdit(index) {
+        colaboradoresSelecionadosEdit.splice(index, 1);
+        renderizarColaboradoresEdit();
+        atualizarJSONEdit();
+
+        if (colaboradoresSelecionadosEdit.length < MAX_COLABORADORES) {
+            document.getElementById('searchContainerEdit').style.display = 'block';
+        }
+    }
+
+    function renderizarColaboradoresEdit() {
+        const container = document.getElementById('colaboradoresContainerEdit');
+        container.innerHTML = '';
+
+        colaboradoresSelecionadosEdit.forEach((colaborador, index) => {
+            const card = document.createElement('div');
+            card.className = 'colaborador-card';
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'colaborador-info';
+
+            const numeroSpan = document.createElement('span');
+            numeroSpan.className = 'colaborador-numero';
+            numeroSpan.textContent = index + 1;
+
+            const nomeSpan = document.createElement('span');
+            nomeSpan.className = 'colaborador-nome';
+            nomeSpan.textContent = colaborador.primeiro_nome;
+
+            const cdSpan = document.createElement('span');
+            cdSpan.className = 'colaborador-codigo';
+            cdSpan.textContent = colaborador.cd_usuario;
+
+            infoDiv.appendChild(numeroSpan);
+            infoDiv.appendChild(nomeSpan);
+            infoDiv.appendChild(cdSpan);
+
+            const btnRemover = document.createElement('button');
+            btnRemover.type = 'button';
+            btnRemover.className = 'btn-remover';
+            btnRemover.innerHTML = '<i class="fas fa-times"></i> Remover';
+            btnRemover.onclick = () => removerColaboradorEdit(index);
+
+            card.appendChild(infoDiv);
+            card.appendChild(btnRemover);
+            container.appendChild(card);
+        });
+    }
+
+    function atualizarJSONEdit() {
+        const jsonObj = {};
+        colaboradoresSelecionadosEdit.forEach((colaborador, index) => {
+            jsonObj[index + 1] = colaborador.primeiro_nome;
+        });
+
+        document.getElementById('colaboradoresJsonEdit').value = JSON.stringify(jsonObj);
+    }
+
+    function filtrarColaboradoresEdit(termo) {
+        const resultados = todosColaboradoresEdit.filter(colaborador =>
+            colaborador.primeiro_nome.toLowerCase().includes(termo.toLowerCase()) ||
+            colaborador.nome_completo.toLowerCase().includes(termo.toLowerCase()) ||
+            colaborador.cd_usuario.toString().includes(termo)
+        );
+
+        const lista = document.getElementById('colaboradorListEdit');
+        lista.innerHTML = '';
+
+        if (resultados.length > 0) {
+            resultados.forEach(colaborador => {
+                const li = document.createElement('li');
+                li.className = 'autocomplete-item';
+
+                const nomeSpan = document.createElement('span');
+                nomeSpan.textContent = colaborador.primeiro_nome;
+
+                const cdSpan = document.createElement('span');
+                cdSpan.className = 'cd-usuario';
+                cdSpan.textContent = colaborador.cd_usuario;
+
+                li.appendChild(nomeSpan);
+                li.appendChild(cdSpan);
+
+                li.addEventListener('click', () => adicionarColaboradorEdit(colaborador));
+
+                lista.appendChild(li);
+            });
+            lista.style.display = 'block';
+        } else {
+            lista.style.display = 'none';
+        }
+    }
+
+    const inputColaboradorEdit = document.getElementById('colaboradorSearchEdit');
+    inputColaboradorEdit.addEventListener('click', () => {
+        filtrarColaboradoresEdit('');
+    });
+    inputColaboradorEdit.addEventListener('focus', () => {
+        filtrarColaboradoresEdit('');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#colaboradorSearchEdit') && !e.target.closest('#colaboradorListEdit')) {
+            document.getElementById('colaboradorListEdit').style.display = 'none';
+        }
+    });
 
     function limparMarcacoesModal(modal) {
         if (!modal) return;
@@ -914,6 +939,7 @@ select.form-select-sm {
         atualizarContadorEdicao('limpeza');
         atualizarContadorEdicao('reposicao');
     }
+
     function mostrarItensLimpeza(id) {
         document.getElementById('itensLimpezaRegistroId').textContent = id;
 
@@ -921,49 +947,185 @@ select.form-select-sm {
             .then(response => response.json())
             .then(data => {
                 const body = document.getElementById('itensLimpezaBody');
+
+                const escapeHtml = (value) => {
+                    if (value === null || value === undefined) {
+                        return '-';
+                    }
+                    return value.toString()
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+                };
+
+                const formatDate = (value) => {
+                    if (!value) {
+                        return '-';
+                    }
+                    const date = new Date(value);
+                    if (!Number.isNaN(date.getTime())) {
+                        return date.toLocaleDateString('pt-BR');
+                    }
+                    const parts = value.toString().split('-');
+                    if (parts.length === 3) {
+                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
+                    return value.toString();
+                };
+
+                const formatHour = (value) => {
+                    if (!value) {
+                        return '-';
+                    }
+                    const stringValue = value.toString();
+                    if (stringValue.length >= 5) {
+                        return stringValue.slice(0, 5);
+                    }
+                    return stringValue;
+                };
+
+                const formatTipoLimpeza = (value) => {
+                    const normalized = (value || '').toString().trim().toUpperCase();
+                    if (normalized === '1' || normalized === 'CONCORRENTE') {
+                        return 'Concorrente';
+                    }
+                    if (normalized === '2' || normalized === 'TERMINAL') {
+                        return 'Terminal';
+                    }
+                    if (normalized === '3' || normalized === 'APOIO') {
+                        return 'Apoio';
+                    }
+                    return value ? value.toString() : '-';
+                };
+
+                const formatCriticidade = (value) => {
+                    const normalized = (value || '').toString().trim().toUpperCase();
+                    if (normalized === '1' || normalized === 'CRITICO' || normalized === 'CRÍTICO') {
+                        return 'Critico';
+                    }
+                    if (normalized === '2' || normalized === 'SEMI-CRITICO' || normalized === 'SEMI-CRÍTICO' || normalized === 'SEMI CRITICO') {
+                        return 'Semi-critico';
+                    }
+                    if (normalized === '3' || normalized === 'NAO CRITICO' || normalized === 'NAO-CRITICO' || normalized === 'NÃO CRITICO') {
+                        return 'Nao critico';
+                    }
+                    if (normalized === 'NA') {
+                        return 'Nao informado';
+                    }
+                    return value ? value.toString() : '-';
+                };
+
+                const renderCard = (label, value, options = {}) => {
+                    const content = options.allowHtml ? value : escapeHtml(value);
+                    return `
+                        <div class="info-card">
+                            <span class="info-label">${escapeHtml(label)}</span>
+                            <span class="info-value">${content}</span>
+                        </div>
+                    `;
+                };
+
+                let colaboradoresHtml = '<span class="info-placeholder">Nao informado</span>';
+                if (data.colaborador) {
+                    try {
+                        const parsed = typeof data.colaborador === 'string' ? JSON.parse(data.colaborador) : data.colaborador;
+                        const nomes = Array.isArray(parsed) ? parsed : Object.values(parsed || {});
+                        if (nomes.length) {
+                            colaboradoresHtml = `<div class="info-chips">${nomes.map((nome) => `<span class="info-chip"><i class="fas fa-user"></i>${escapeHtml(nome)}</span>`).join('')}</div>`;
+                        } else {
+                            colaboradoresHtml = '<span class="info-placeholder">Nao informado</span>';
+                        }
+                    } catch (error) {
+                        const texto = data.colaborador.toString().trim();
+                        colaboradoresHtml = texto ? escapeHtml(texto) : '<span class="info-placeholder">Nao informado</span>';
+                    }
+                }
+
+                const resumoHtml = [
+                    renderCard('Setor', data.nome_setor || '-'),
+                    renderCard('Sala', data.nome_sala || '-'),
+                    renderCard('Tipo de limpeza', formatTipoLimpeza(data.tipo_limpeza)),
+                    renderCard('Criticidade', formatCriticidade(data.criticidade)),
+                    renderCard('Data', formatDate(data.data_limpeza)),
+                    renderCard('Hora', formatHour(data.hora_limpeza)),
+                    renderCard('Dispositivo', data.device || '-'),
+                    renderCard('Colaboradores', colaboradoresHtml, { allowHtml: true })
+                ].join('');
+
                 const itensLimpeza = [
                     { label: 'Portas', value: data.portas },
                     { label: 'Teto', value: data.teto },
                     { label: 'Paredes', value: data.paredes },
                     { label: 'Janelas', value: data.janelas },
                     { label: 'Piso', value: data.piso },
-                    { label: 'Superfície/Mobiliário', value: data.superficie_mobiliario },
+                    { label: 'Superficie/Mobiliario', value: data.superficie_mobiliario },
                     { label: 'Dispenser', value: data.dispenser }
                 ];
                 const itensReposicao = [
-                    { label: 'Papel Higienico', value: data.papel_hig },
-                    { label: 'Papel Toalha', value: data.papel_toalha },
+                    { label: 'Papel higienico', value: data.papel_hig },
+                    { label: 'Papel toalha', value: data.papel_toalha },
                     { label: 'Alcool', value: data.alcool },
                     { label: 'Sabonete', value: data.sabonete }
                 ];
 
-                const filtrarSim = item => (item.value || '').toString().toUpperCase() === 'S';
-                const limpezaSim = itensLimpeza.filter(filtrarSim);
-                const reposicaoSim = itensReposicao.filter(filtrarSim);
-
-                if (!limpezaSim.length && !reposicaoSim.length) {
-                    body.innerHTML = '<p class="text-muted mb-0">Nenhum item </p>';
-                } else {
-                    let content = '';
-
-                    if (limpezaSim.length) {
-                        content += '<h6 class="fw-bold">Itens de Limpeza</h6><ul class="list-group mb-3">';
-                        limpezaSim.forEach(item => {
-                            content += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.label}<span class="badge bg-success rounded-pill">S</span></li>`;
-                        });
-                        content += '</ul>';
+                const statusFor = (valor) => {
+                    const normalized = (valor || '').toString().trim().toUpperCase();
+                    if (normalized === 'S' || normalized === 'SIM') {
+                        return { className: 'success', icon: 'fa-check-circle' };
                     }
-
-                    if (reposicaoSim.length) {
-                        content += '<h6 class="fw-bold">Itens de Reposicao</h6><ul class="list-group">';
-                        reposicaoSim.forEach(item => {
-                            content += `<li class="list-group-item d-flex justify-content-between align-items-center">${item.label}<span class="badge bg-success rounded-pill">S</span></li>`;
-                        });
-                        content += '</ul>';
+                    if (normalized === 'N' || normalized === 'NAO' || normalized === 'NÃO') {
+                        return { className: 'danger', icon: 'fa-times-circle' };
                     }
+                    return { className: 'neutral', icon: 'fa-minus-circle' };
+                };
 
-                    body.innerHTML = content;
-                }
+                const renderStatusGrid = (itens) => {
+                    return `
+                        <div class="info-status-grid">
+                            ${itens.map((item) => {
+                                const status = statusFor(item.value);
+                                return `
+                                    <div class="info-status ${status.className}">
+                                        <div class="info-status-label">
+                                            <span>${escapeHtml(item.label)}</span>
+                                        </div>
+                                        <span class="info-status-icon"><i class="fas ${status.icon}"></i></span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                };
+
+                const observacaoHtml = data.obs && data.obs.toString().trim()
+                    ? escapeHtml(data.obs).replace(/\n/g, '<br>')
+                    : '<span class="info-placeholder">Sem observacoes s.</span>';
+                const observacaoClass = data.obs && data.obs.toString().trim() ? 'info-observacao' : 'info-observacao empty';
+
+                body.innerHTML = `
+                    <div class="info-modal-section">
+                        <span class="info-modal-title"><i class="fas fa-clipboard-check"></i> Resumo do Registro</span>
+                        <div class="info-grid">
+                            ${resumoHtml}
+                        </div>
+                    </div>
+                    <div class="info-modal-section">
+                        <span class="info-modal-title"><i class="fas fa-broom"></i> Itens de Limpeza</span>
+                        ${renderStatusGrid(itensLimpeza)}
+                    </div>
+                    <div class="info-modal-section">
+                        <span class="info-modal-title"><i class="fas fa-box-open"></i> Itens de Reposicao</span>
+                        ${renderStatusGrid(itensReposicao)}
+                    </div>
+                    <div class="info-modal-section">
+                        <span class="info-modal-title"><i class="fas fa-comment-alt"></i> Observacoes</span>
+                        <div class="${observacaoClass}">
+                            ${observacaoHtml}
+                        </div>
+                    </div>
+                `;
 
                 itensLimpezaModal.show();
             })
@@ -971,7 +1133,6 @@ select.form-select-sm {
                 alert('Erro ao carregar dados do registro');
             });
     }
-
     function toggleCamposTerminalEdit() {
         const tipoLimpeza = document.getElementById('editTipo').value;
         const camposTerminalEdit = document.getElementById('camposTerminalEdit');
@@ -994,7 +1155,17 @@ select.form-select-sm {
         currentEditId = id;
         document.getElementById('editRegistroId').textContent = id;
 
-        fetch(`/obter-registro/${id}/`)
+        // Limpar colaboradores anteriores
+        colaboradoresSelecionadosEdit = [];
+        document.getElementById('colaboradoresContainerEdit').innerHTML = '';
+        document.getElementById('searchContainerEdit').style.display = 'block';
+
+        // Garantir que colaboradores estejam carregados
+        const carregarPromise = Promise.resolve();
+
+        // Carregar dados do registro
+        carregarPromise
+            .then(() => fetch(`/obter-registro/${id}/`))
             .then(response => response.json())
             .then(data => {
                 currentRegistroData = data;
@@ -1006,7 +1177,22 @@ select.form-select-sm {
                 camposTerminal.forEach(campo => {
                     currentRegistroData[campo] = (currentRegistroData[campo] || 'NA').toString().toUpperCase();
                 });
-                document.getElementById('editColaborador').value = data.colaborador || '';
+
+                // Processar colaboradores do JSON
+                try {
+                    const colaboradoresObj = JSON.parse(data.colaborador);
+                    Object.values(colaboradoresObj).forEach((nome) => {
+                        const colab = todosColaboradoresEdit.find(c => c.primeiro_nome === nome);
+                        if (colab && !colaboradoresSelecionadosEdit.find(c => c.cd_usuario === colab.cd_usuario)) {
+                            colaboradoresSelecionadosEdit.push(colab);
+                        }
+                    });
+                    renderizarColaboradoresEdit();
+                    atualizarJSONEdit();
+                } catch (e) {
+                    console.log('Erro ao processar colaboradores:', e, data.colaborador);
+                }
+
                 document.getElementById('editData').value = data.data_limpeza || '';
                 document.getElementById('editHora').value = data.hora_limpeza || '';
                 const tipoLimpezaValor = data.tipo_limpeza ? data.tipo_limpeza.toString() : '1';
@@ -1020,7 +1206,8 @@ select.form-select-sm {
                 toggleCamposTerminalEdit();
                 editModal.show();
             })
-            .catch(() => {
+            .catch((error) => {
+                console.error('Erro:', error);
                 alert('Erro ao carregar dados do registro');
             });
     }
@@ -1040,8 +1227,15 @@ select.form-select-sm {
     document.getElementById('btnSalvarEdit').addEventListener('click', function() {
         if (!currentEditId) return;
 
+        // Validar colaboradores
+        const colaboradoresJson = document.getElementById('colaboradoresJsonEdit').value;
+        if (!colaboradoresJson || colaboradoresJson.trim() === '' || colaboradoresJson === '{}') {
+            mostrarAvisoEdit('Por favor, selecione pelo menos um colaborador');
+            return;
+        }
+
         const updates = {
-            colaborador: document.getElementById('editColaborador').value.trim(),
+            colaborador: colaboradoresJson,
             data_limpeza: document.getElementById('editData').value,
             hora_limpeza: document.getElementById('editHora').value,
             tipo_limpeza: document.getElementById('editTipo').value,

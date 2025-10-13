@@ -1,20 +1,10 @@
 {% extends 'base.html' %}
 
+{% load static %}
 {% block title %}Sucesso{% endblock %}
 
 {% block style %}
-.card {
-    background-color: #fff;
-    padding: 50px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-.timer {
-    font-size: 3rem;
-    font-weight: bold;
-    color: #0d6efd;
-    margin: 20px 0;
-}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/sucesso.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -26,17 +16,6 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    let segundos = 7;
-    const timerElement = document.getElementById('timer');
-
-    const countdown = setInterval(() => {
-        segundos--;
-        timerElement.textContent = segundos;
-
-        if (segundos <= 0) {
-            clearInterval(countdown);
-        }
-    }, 1000);
-</script>
+    {{ block.super }}
+    <script src="{% static 'js/sucesso.js' %}"></script>
 {% endblock %}

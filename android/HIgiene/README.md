@@ -1,4 +1,4 @@
-# AME Votuporanga - Scanner de QR Code
+# Registro Higiene - Scanner de QR Code
 
 Aplicativo Android para leitura de QR Codes com abertura automática de links em navegador interno.
 
@@ -188,11 +188,11 @@ fun BlueTheme(content: @Composable () -> Unit) {
 ## Estrutura do Projeto
 
 ```
-HIgiene/
+RegistroHigiene/
 ├── app/
 │   ├── src/
 │   │   ├── main/
-│   │   │   ├── java/com/example/higiene/
+│   │   │   ├── java/com/example/RegistroHigiene/
 │   │   │   │   └── MainActivity.kt
 │   │   │   ├── res/
 │   │   │   │   ├── mipmap-*/
