@@ -65,7 +65,7 @@ def index_view(request, sala_id):
             SELECT s.nome_sala, st.nome_setor, st.id_setor
             FROM if_tbl_sala_higiene s
             JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
-            WHERE s.id_sala = :id_sala
+            WHERE s.id_sala = :id_sala AND s.SN_ativo = 'S'
         """
         cursor.execute(query, id_sala=sala_id)
         result = cursor.fetchone()
@@ -105,7 +105,7 @@ def registro_view(request, sala_id):
             SELECT s.nome_sala, st.nome_setor
             FROM if_tbl_sala_higiene s
             JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
-            WHERE s.id_sala = :id_sala
+            WHERE s.id_sala = :id_sala AND s.SN_ativo = 'S'
         """
         cursor.execute(query, id_sala=sala_id)
         result = cursor.fetchone()
@@ -318,6 +318,7 @@ def salas_view(request):
                 )
                 WHERE rn = 1
             ) ut ON ut.id_sala = s.id_sala
+            WHERE s.SN_ativo = 'S'
             GROUP BY s.id_sala, s.nome_sala, st.nome_setor, st.id_setor,
                      uc.data_limpeza, uc.hora_limpeza,
                      ut.data_limpeza, ut.hora_limpeza
@@ -409,7 +410,7 @@ def historico_view(request, sala_id):
                 SELECT s.nome_sala, st.nome_setor
                 FROM if_tbl_sala_higiene s
                 JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
-                WHERE s.id_sala = :id_sala
+                WHERE s.id_sala = :id_sala AND s.SN_ativo = 'S'
             """
             cursor.execute(query_sala, id_sala=sala_id)
             result = cursor.fetchone()
@@ -659,7 +660,7 @@ def relatorio_view(request):
             FROM if_tbl_registro_higiene r
             JOIN if_tbl_sala_higiene s ON r.id_sala = s.id_sala
             JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
-            {where_clause}
+            {where_clause} AND s.SN_ativo = 'S'
             ORDER BY r.data_limpeza DESC, r.hora_limpeza DESC
         """
         cursor.execute(query, query_params)
@@ -858,7 +859,7 @@ def obter_registro_view(request, registro_id):
                 FROM if_tbl_registro_higiene r
                 JOIN if_tbl_sala_higiene s ON r.id_sala = s.id_sala
                 JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
-                WHERE r.id_registro = :id
+                WHERE r.id_registro = :id AND s.SN_ativo = 'S'
             """
             cursor.execute(query, {'id': registro_id})
             result = cursor.fetchone()
