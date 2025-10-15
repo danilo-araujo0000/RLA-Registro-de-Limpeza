@@ -322,7 +322,7 @@ def salas_view(request):
             GROUP BY s.id_sala, s.nome_sala, st.nome_setor, st.id_setor,
                      uc.data_limpeza, uc.hora_limpeza,
                      ut.data_limpeza, ut.hora_limpeza
-            ORDER BY s.id_sala ASC
+            ORDER BY st.id_setor ASC, s.id_sala ASC
         """
         cursor.execute(query)
         results = cursor.fetchall()
