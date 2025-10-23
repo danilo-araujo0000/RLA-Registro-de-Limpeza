@@ -5,6 +5,16 @@
 
 {% block style %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/relatorio.css' %}">
+    <style>
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -32,7 +42,7 @@
                     <option value="concorrente">Concorrente</option>
                 </select>
             </div>
-            <div class="col-lg-3 col-md-6">
+            <div class="col-lg-2 col-md-4">
                 <label class="form-label"><i class="fas fa-sort"></i> Ordenar por</label>
                 <select id="sortBy" class="form-select">
                     <option value="data_desc">Data (Mais recente)</option>
@@ -51,7 +61,7 @@
                 <label class="form-label"><i class="fas fa-calendar"></i> Data Fim</label>
                 <input type="date" id="dataFim" class="form-control">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label d-block"><i class="fas fa-building"></i> Setores</label>
                 <div class="border rounded" style="background-color: #fff; position: relative;">
                     <button type="button" class="btn w-100 text-start d-flex justify-content-between align-items-center" id="toggleSetores" style="border: none; background: transparent; padding: 8px 12px;">
@@ -86,10 +96,18 @@
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center">
-            <span id="resultCount" class="text-muted">Total: {{ registros|length }} registros</span>
-            <button id="clearFilters" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-redo"></i> Limpar Filtros
-            </button>
+            <span id="resultCount" class="text-muted fw-bold">Total: {{ registros|length }} registros</span>
+            <div class="d-flex gap-2">
+                <button id="addNewBtn" class="btn btn-success" style="padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 3px 6px rgba(40,167,69,0.3); transition: all 0.3s ease;">
+                    <i class="fas fa-plus-circle"></i> Adicionar Novo
+                </button>
+                <button id="refreshBtn" class="btn btn-primary" style="padding: 8px 20px; border-radius: 8px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,123,255,0.2); transition: all 0.3s ease;">
+                    <i class="fas fa-sync-alt"></i> Atualizar
+                </button>
+                <button id="clearFilters" class="btn btn-outline-secondary" style="padding: 8px 20px; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;">
+                    <i class="fas fa-times-circle"></i> Limpar Filtros
+                </button>
+            </div>
         </div>
     </div>
 
@@ -110,7 +128,7 @@
             </thead>
                         <tbody id="tableBody">
                 {% for registro in registros %}
-                <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}" data-data="{{ registro.data_limpeza|date:'Y-m-d' }}" data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
+                <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}" data-data="{{ registro.data_limpeza|date:'Y-m-d' }}" data-datahora="{{ registro.data_limpeza|date:'Y-m-d' }} {{ registro.hora_limpeza }}" data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
                     <td>{{ registro.id_registro }}</td>
                     <td>
                         <span class="setor-badge {{ registro.setor_color }}" data-setor="{{ registro.nome_setor }}">
@@ -556,9 +574,9 @@
 
         allRows.sort((a, b) => {
             if (sortValue === 'data_desc') {
-                return b.dataset.data.localeCompare(a.dataset.data);
+                return b.dataset.datahora.localeCompare(a.dataset.datahora);
             } else if (sortValue === 'data_asc') {
-                return a.dataset.data.localeCompare(b.dataset.data);
+                return a.dataset.datahora.localeCompare(b.dataset.datahora);
             } else if (sortValue === 'sala_asc') {
                 return a.dataset.sala.localeCompare(b.dataset.sala);
             } else if (sortValue === 'sala_desc') {
@@ -606,6 +624,9 @@
 
     searchInput.addEventListener('input', applyFilters);
     tipoFilter.addEventListener('change', applyFilters);
+
+    sortTable();
+
     dataInicio.addEventListener('change', function() {
         const params = new URLSearchParams(window.location.search);
         if (dataInicio.value) {
@@ -634,6 +655,52 @@
 
     clearFilters.addEventListener('click', () => {
         window.location.href = window.location.pathname;
+    });
+
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    refreshBtn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 4px 8px rgba(0,123,255,0.3)';
+    });
+    refreshBtn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 2px 4px rgba(0,123,255,0.2)';
+    });
+
+    clearFilters.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
+    });
+    clearFilters.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = 'none';
+    });
+
+    refreshBtn.addEventListener('click', () => {
+        const icon = refreshBtn.querySelector('i');
+        icon.style.animation = 'spin 0.6s linear';
+        setTimeout(() => {
+            icon.style.animation = '';
+        }, 600);
+        setTimeout(() => {
+            location.reload();
+        }, 300);
+    });
+
+    const addNewBtn = document.getElementById('addNewBtn');
+
+    addNewBtn.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 5px 12px rgba(40,167,69,0.4)';
+    });
+    addNewBtn.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '0 3px 6px rgba(40,167,69,0.3)';
+    });
+
+    addNewBtn.addEventListener('click', () => {
+        window.location.href = '{% url "salas_view" %}';
     });
 
     const editModal = new bootstrap.Modal(document.getElementById('editModal'));

@@ -39,6 +39,5 @@ EXPOSE 8000
 
 CMD python3 manage.py collectstatic --noinput && \
     python3 manage.py migrate && \
-    python3 manage.py migrate --database=oracle || true && \
     python3 create_superuser.py && \
     gunicorn --bind 0.0.0.0:8000 --workers 3 higiene_project.wsgi:application

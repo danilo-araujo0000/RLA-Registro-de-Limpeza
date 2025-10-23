@@ -8,7 +8,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-      - static_volume:/app/staticfiles
     environment:
       - PYTHONUNBUFFERED=1
       - SECRET_KEY=594F93760230ACA19A057FBEE71FC058
@@ -20,6 +19,3 @@ services:
       - DJANGO_SUPERUSER_EMAIL=suporteame.ti@santacasavotuporanga.com.br
       - DJANGO_SUPERUSER_PASSWORD=adminVsti2013
     restart: unless-stopped
-
-volumes:
-  static_volume:
