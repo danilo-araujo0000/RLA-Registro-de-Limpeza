@@ -4,7 +4,7 @@ echo "🔄 Atualizando código do repositório..."
 git pull origin main
 
 echo "🔄 Resetando para main..."
-git reset --hard origin/main
+git reset --hard main/main
 
 echo "🔄 Reiniciando container..."
 docker-compose restart
