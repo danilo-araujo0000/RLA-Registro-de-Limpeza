@@ -108,14 +108,18 @@ function toggleCamposTerminal() {
     const camposTerminal = document.getElementById("camposTerminal");
     const criticidade = document.getElementById("criticidade");
 
-    if (tipoLimpeza === "2") { 
+    if (tipoLimpeza === "2") {
         camposTerminal.style.display = "block";
         criticidade.setAttribute("required", "required");
     } else {
         camposTerminal.style.display = "none";
         criticidade.removeAttribute("required");
 
-        
+        // Limpa o campo de criticidade
+        criticidade.value = '';
+        updateSelectColor(criticidade);
+
+        // Limpa os itens de limpeza terminal
         const itens = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
         itens.forEach(item => {
             document.getElementById(`${item}_hidden`).value = '';
@@ -123,7 +127,7 @@ function toggleCamposTerminal() {
             radios.forEach(radio => radio.checked = false);
         });
 
-        
+        // Oculta o contador de itens
         document.getElementById('contadorItens').style.display = 'none';
     }
 }

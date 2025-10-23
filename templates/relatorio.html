@@ -156,7 +156,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center text-muted">Nenhum registro encontrado no último mês.</td>
+                    <td colspan="9" class="text-center text-muted">Nenhum registro encontrado nos últimos 3 dias.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -503,9 +503,9 @@
         dataInicio.value = urlParams.get('data_inicio');
     } else {
         const hoje = new Date();
-        const trintaDiasAtras = new Date(hoje);
-        trintaDiasAtras.setDate(hoje.getDate() - 30);
-        dataInicio.value = trintaDiasAtras.toISOString().split('T')[0];
+        const tresDiasAtras = new Date(hoje);
+        tresDiasAtras.setDate(hoje.getDate() - 3);
+        dataInicio.value = tresDiasAtras.toISOString().split('T')[0];
     }
     if (urlParams.get('data_fim')) {
         dataFim.value = urlParams.get('data_fim');
@@ -988,13 +988,13 @@
                     if (!value) {
                         return '-';
                     }
+                    const parts = value.toString().split('-');
+                    if (parts.length === 3 && parts[0].length === 4) {
+                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    }
                     const date = new Date(value);
                     if (!Number.isNaN(date.getTime())) {
                         return date.toLocaleDateString('pt-BR');
-                    }
-                    const parts = value.toString().split('-');
-                    if (parts.length === 3) {
-                        return `${parts[2]}/${parts[1]}/${parts[0]}`;
                     }
                     return value.toString();
                 };
@@ -1179,15 +1179,12 @@
         currentEditId = id;
         document.getElementById('editRegistroId').textContent = id;
 
-        // Limpar colaboradores anteriores
         colaboradoresSelecionadosEdit = [];
         document.getElementById('colaboradoresContainerEdit').innerHTML = '';
         document.getElementById('searchContainerEdit').style.display = 'block';
 
-        // Garantir que colaboradores estejam carregados
         const carregarPromise = Promise.resolve();
 
-        // Carregar dados do registro
         carregarPromise
             .then(() => fetch(`/obter-registro/${id}/`))
             .then(response => response.json())
@@ -1202,7 +1199,6 @@
                     currentRegistroData[campo] = (currentRegistroData[campo] || 'NA').toString().toUpperCase();
                 });
 
-                // Processar colaboradores do JSON
                 try {
                     const colaboradoresObj = JSON.parse(data.colaborador);
                     Object.values(colaboradoresObj).forEach((nome) => {
@@ -1251,7 +1247,6 @@
     document.getElementById('btnSalvarEdit').addEventListener('click', function() {
         if (!currentEditId) return;
 
-        // Validar colaboradores
         const colaboradoresJson = document.getElementById('colaboradoresJsonEdit').value;
         if (!colaboradoresJson || colaboradoresJson.trim() === '' || colaboradoresJson === '{}') {
             mostrarAvisoEdit('Por favor, selecione pelo menos um colaborador');

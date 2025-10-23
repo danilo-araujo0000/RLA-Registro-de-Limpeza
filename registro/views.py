@@ -172,31 +172,42 @@ def salvar_registro_view(request):
 
             colaborador = colaboradores_json
 
+            data_limpeza = request.POST.get('data')
             hora_limpeza = request.POST.get('hora_limpeza')
             id_tipo_limpeza = request.POST.get('tipo_limpeza')
 
-            id_criticidade = request.POST.get('criticidade') if id_tipo_limpeza == '2' else None
-            portas = request.POST.get('portas')
-            if not portas:
-                portas = 'NA'
-            teto = request.POST.get('teto')
-            if not teto:
-                teto = 'NA'
-            paredes = request.POST.get('paredes')
-            if not paredes:
-                paredes = 'NA'
-            janelas = request.POST.get('janelas')
-            if not janelas:
-                janelas = 'NA'
-            piso = request.POST.get('piso')
-            if not piso:
-                piso = 'NA'
-            superficie_mobiliario = request.POST.get('superficie_mobiliario')
-            if not superficie_mobiliario:
-                superficie_mobiliario = 'NA'
-            dispenser = request.POST.get('dispenser')
-            if not dispenser:
-                dispenser = 'NA'
+            if id_tipo_limpeza == '1':
+                id_criticidade = None
+                portas = None
+                teto = None
+                paredes = None
+                janelas = None
+                piso = None
+                superficie_mobiliario = None
+                dispenser = None
+            else:  
+                id_criticidade = request.POST.get('criticidade')
+                portas = request.POST.get('portas')
+                if not portas:
+                    portas = 'NA'
+                teto = request.POST.get('teto')
+                if not teto:
+                    teto = 'NA'
+                paredes = request.POST.get('paredes')
+                if not paredes:
+                    paredes = 'NA'
+                janelas = request.POST.get('janelas')
+                if not janelas:
+                    janelas = 'NA'
+                piso = request.POST.get('piso')
+                if not piso:
+                    piso = 'NA'
+                superficie_mobiliario = request.POST.get('superficie_mobiliario')
+                if not superficie_mobiliario:
+                    superficie_mobiliario = 'NA'
+                dispenser = request.POST.get('dispenser')
+                if not dispenser:
+                    dispenser = 'NA'
 
             papel_hig = request.POST.get('papel_hig')
             if not papel_hig:
@@ -227,7 +238,7 @@ def salvar_registro_view(request):
                 PORTAS, TETO, PAREDES, JANELAS, PISO, SUPERFICIE_MOBILIARIO, DISPENSER, ID_CRITICIDADE,
                 PAPEL_HIG, PAPEL_TOALHA, ALCOOL, SABONETE, DEVICE, LAST_UPDATE
             ) VALUES (
-                :id_sala, :colaborador, SYSDATE, :hora_limpeza, :id_tipo_limpeza, :obs,
+                :id_sala, :colaborador, TO_DATE(:data_limpeza, 'YYYY-MM-DD'), :hora_limpeza, :id_tipo_limpeza, :obs,
                 :portas, :teto, :paredes, :janelas, :piso, :superficie_mobiliario, :dispenser, :id_criticidade,
                 :papel_hig, :papel_toalha, :alcool, :sabonete, :device_id, SYSDATE
             )"""
@@ -235,6 +246,7 @@ def salvar_registro_view(request):
             cursor.execute(sql, {
                 'id_sala': id_sala,
                 'colaborador': colaborador,
+                'data_limpeza': data_limpeza,
                 'hora_limpeza': hora_limpeza,
                 'id_tipo_limpeza': id_tipo_limpeza,
                 'obs': obs,
@@ -640,7 +652,7 @@ def relatorio_view(request):
         if data_inicio_param:
             data_inicio = datetime.strptime(data_inicio_param, '%Y-%m-%d')
         else:
-            data_inicio = datetime.now() - timedelta(days=30)
+            data_inicio = datetime.now() - timedelta(days=3)
 
         query_params = {'data_inicio': data_inicio}
         where_clause = "WHERE r.data_limpeza >= :data_inicio"
