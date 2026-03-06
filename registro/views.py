@@ -24,6 +24,8 @@ except Exception as e:
     print(f"Erro ao inicializar Oracle Client: {e}")
 
 
+
+
 def extrair_nome_abreviado(nome_completo):
     if not nome_completo:
         return ''
@@ -209,18 +211,38 @@ def salvar_registro_view(request):
                 if not dispenser:
                     dispenser = 'NA'
 
-            papel_hig = request.POST.get('papel_hig')
-            if not papel_hig:
-                papel_hig = 'NA'
-            papel_toalha = request.POST.get('papel_toalha')
-            if not papel_toalha:
-                papel_toalha = 'NA'
-            alcool = request.POST.get('alcool')
-            if not alcool:
-                alcool = 'NA'
-            sabonete = request.POST.get('sabonete')
-            if not sabonete:
-                sabonete = 'NA'
+            # Converter valores de reposição para inteiros (NUMBER no Oracle)
+            papel_hig = request.POST.get('papel_hig', '0')
+            try:
+                papel_hig = int(papel_hig)
+                if papel_hig < 0:
+                    papel_hig = 0
+            except (ValueError, TypeError):
+                papel_hig = 0
+
+            papel_toalha = request.POST.get('papel_toalha', '0')
+            try:
+                papel_toalha = int(papel_toalha)
+                if papel_toalha < 0:
+                    papel_toalha = 0
+            except (ValueError, TypeError):
+                papel_toalha = 0
+
+            alcool = request.POST.get('alcool', '0')
+            try:
+                alcool = int(alcool)
+                if alcool < 0:
+                    alcool = 0
+            except (ValueError, TypeError):
+                alcool = 0
+
+            sabonete = request.POST.get('sabonete', '0')
+            try:
+                sabonete = int(sabonete)
+                if sabonete < 0:
+                    sabonete = 0
+            except (ValueError, TypeError):
+                sabonete = 0
 
             obs = request.POST.get('obs')
             device_id = request.COOKIES.get('device_id')
@@ -482,10 +504,10 @@ def historico_view(request, sala_id):
                 'superficie_mobiliario': row[11] if row[11] else 'NA',
                 'dispenser': row[12] if row[12] else 'NA',
                 'criticidade': criticidade_map.get(row[13], ''),
-                'papel_hig': row[14] if row[14] else 'NA',
-                'papel_toalha': row[15] if row[15] else 'NA',
-                'alcool': row[16] if row[16] else 'NA',
-                'sabonete': row[17] if row[17] else 'NA',
+                'papel_hig': int(row[14]) if row[14] is not None and str(row[14]).replace('-','').isdigit() else 0,
+                'papel_toalha': int(row[15]) if row[15] is not None and str(row[15]).replace('-','').isdigit() else 0,
+                'alcool': int(row[16]) if row[16] is not None and str(row[16]).replace('-','').isdigit() else 0,
+                'sabonete': int(row[17]) if row[17] is not None and str(row[17]).replace('-','').isdigit() else 0,
             })
 
         query_count = """
@@ -541,17 +563,17 @@ def historico_view(request, sala_id):
 
                     html_registros += '</div></div>'
 
-                    
+
                     html_registros += '<div class="mt-3"><strong>Reposição:</strong><div class="d-flex flex-wrap gap-2 mt-2">'
 
-                    if registro['papel_hig'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["papel_hig"].lower()}">Papel Higiênico: {registro["papel_hig"]}</span>'
-                    if registro['papel_toalha'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["papel_toalha"].lower()}">Papel Toalha: {registro["papel_toalha"]}</span>'
-                    if registro['alcool'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["alcool"].lower()}">Álcool: {registro["alcool"]}</span>'
-                    if registro['sabonete'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["sabonete"].lower()}">Sabonete: {registro["sabonete"]}</span>'
+                    if registro['papel_hig'] > 0:
+                        html_registros += f'<span class="badge badge-quantidade">Papel Higiênico: {registro["papel_hig"]} un.</span>'
+                    if registro['papel_toalha'] > 0:
+                        html_registros += f'<span class="badge badge-quantidade">Papel Toalha: {registro["papel_toalha"]} un.</span>'
+                    if registro['alcool'] > 0:
+                        html_registros += f'<span class="badge badge-quantidade">Álcool: {registro["alcool"]} un.</span>'
+                    if registro['sabonete'] > 0:
+                        html_registros += f'<span class="badge badge-quantidade">Sabonete: {registro["sabonete"]} un.</span>'
 
                     html_registros += '</div></div>'
 
@@ -619,13 +641,14 @@ def relatorio_view(request):
     cursor = None
     registros = []
     setores_dict = {}
+    salas_dict = {}
     colaboradores = []
 
     try:
         conn = get_oracle_connection()
         cursor = conn.cursor()
 
-        
+
         query_colaboradores = """
             SELECT DISTINCT NM_USUARIO, CD_USUARIO
             FROM dbasgu.USUARIOS u
@@ -652,7 +675,8 @@ def relatorio_view(request):
         if data_inicio_param:
             data_inicio = datetime.strptime(data_inicio_param, '%Y-%m-%d')
         else:
-            data_inicio = datetime.now() - timedelta(days=3)
+            data_inicio = datetime.now()
+            data_inicio = data_inicio.replace(hour=0, minute=0, second=0, microsecond=0)
 
         query_params = {'data_inicio': data_inicio}
         where_clause = "WHERE r.data_limpeza >= :data_inicio"
@@ -685,6 +709,8 @@ def relatorio_view(request):
         for row in results:
             nome_setor = row[8]
             id_setor = row[9]
+            nome_sala = row[7]
+
             if nome_setor not in setores_dict:
                 setores_dict[nome_setor] = {
                     'nome': nome_setor,
@@ -692,7 +718,13 @@ def relatorio_view(request):
                     'color': f'setor-color-{(id_setor - 1) % 16}'
                 }
 
-            
+            if nome_sala and nome_sala not in salas_dict:
+                salas_dict[nome_sala] = {
+                    'nome': nome_sala,
+                    'setor': nome_setor
+                }
+
+
             colaborador_str = row[1]
             colaborador_formatado = colaborador_str
             try:
@@ -736,6 +768,7 @@ def relatorio_view(request):
     return render(request, 'relatorio.html', {
         'registros': registros,
         'setores': sorted(setores_dict.values(), key=lambda x: x['nome']),
+        'salas': sorted(salas_dict.values(), key=lambda x: x['nome']),
         'colaboradores': json.dumps(colaboradores)
     })
 
@@ -890,10 +923,10 @@ def obter_registro_view(request, registro_id):
                     'piso': result[9] or 'NA',
                     'superficie_mobiliario': result[10] or 'NA',
                     'dispenser': result[11] or 'NA',
-                    'papel_hig': result[12] or 'NA',
-                    'papel_toalha': result[13] or 'NA',
-                    'alcool': result[14] or 'NA',
-                    'sabonete': result[15] or 'NA',
+                    'papel_hig': int(result[12]) if result[12] is not None and str(result[12]).isdigit() else 0,
+                    'papel_toalha': int(result[13]) if result[13] is not None and str(result[13]).isdigit() else 0,
+                    'alcool': int(result[14]) if result[14] is not None and str(result[14]).isdigit() else 0,
+                    'sabonete': int(result[15]) if result[15] is not None and str(result[15]).isdigit() else 0,
                     'nome_sala': result[16] or '-',
                     'nome_setor': result[17] or '-',
                     'device': result[18] or '',

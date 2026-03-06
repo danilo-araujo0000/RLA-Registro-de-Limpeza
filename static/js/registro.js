@@ -194,59 +194,96 @@ function confirmarItensLimpeza() {
     fecharModal();
 }
 
+// Objeto para armazenar quantidades de reposição
+const quantidades = {
+    papel_hig: 0,
+    papel_toalha: 0,
+    alcool: 0,
+    sabonete: 0
+};
+
 function abrirModalReposicao() {
     document.getElementById('modalReposicao').classList.add('show');
-    
-    document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-        item.classList.remove('erro', 'completo');
+
+    // Carregar valores atuais dos campos hidden
+    const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+    itens.forEach(item => {
+        const valorAtual = parseInt(document.getElementById(`${item}_hidden`).value) || 0;
+        quantidades[item] = valorAtual;
+        atualizarDisplayQuantidade(item);
     });
 }
 
 function fecharModalReposicao() {
     document.getElementById('modalReposicao').classList.remove('show');
-    
-    document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-        item.classList.remove('erro', 'completo');
+}
+
+// Função para incrementar quantidade
+function incrementarQuantidade(item) {
+    const display = document.getElementById(`display_${item}`);
+    const max = parseInt(display.getAttribute('max')) || 999;
+
+    if (quantidades[item] < max) {
+        quantidades[item]++;
+        atualizarDisplayQuantidade(item);
+    }
+}
+
+// Função para decrementar quantidade
+function decrementarQuantidade(item) {
+    const min = 0;
+
+    if (quantidades[item] > min) {
+        quantidades[item]--;
+        atualizarDisplayQuantidade(item);
+    }
+}
+
+// Atualizar display de quantidade
+function atualizarDisplayQuantidade(item) {
+    const display = document.getElementById(`display_${item}`);
+    display.value = quantidades[item];
+
+    // Adicionar classe visual se > 0
+    const itemDiv = display.closest('.item-limpeza');
+    if (quantidades[item] > 0) {
+        itemDiv.classList.add('completo');
+        itemDiv.classList.remove('erro');
+    } else {
+        itemDiv.classList.remove('completo', 'erro');
+    }
+}
+
+// Função para resetar quantidades
+function resetarQuantidades() {
+    const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+    itens.forEach(item => {
+        quantidades[item] = 0;
+        atualizarDisplayQuantidade(item);
     });
 }
 
 function confirmarItensReposicao() {
     const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-    let todosPreenchidos = true;
 
-    
-    document.querySelectorAll('#modalReposicao .item-limpeza').forEach(item => {
-        item.classList.remove('erro', 'completo');
-    });
-
+    // Transferir quantidades para campos hidden
     itens.forEach(item => {
-        const radioSelecionado = document.querySelector(`input[name="modal_${item}"]:checked`);
-        const itemDiv = document.querySelector(`input[name="modal_${item}"]`).closest('.item-limpeza');
-
-        if (radioSelecionado) {
-            document.getElementById(`${item}_hidden`).value = radioSelecionado.value;
-            itemDiv.classList.add('completo');
-        } else {
-            todosPreenchidos = false;
-            itemDiv.classList.add('erro');
-        }
+        document.getElementById(`${item}_hidden`).value = quantidades[item];
     });
 
-    if (!todosPreenchidos) {
-        
-        const primeiroErro = document.querySelector('#modalReposicao .item-limpeza.erro');
-        if (primeiroErro) {
-            primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
+    // Calcular total de itens repostos
+    const total = itens.reduce((sum, item) => sum + quantidades[item], 0);
+
+    // Atualizar contador no botão
+    const contador = document.getElementById('contadorReposicao');
+    if (total > 0) {
+        contador.textContent = `Total: ${total} ${total === 1 ? 'item' : 'itens'}`;
+        contador.style.display = 'inline';
+    } else {
+        contador.style.display = 'none';
     }
 
-    
-    const contador = document.getElementById('contadorReposicao');
-    contador.textContent = `${itens.length}/${itens.length}`;
-    contador.style.display = 'inline';
-
-    
+    // Remover validação obrigatória (permitir 0 em todos os campos)
     const campoValidacao = document.getElementById('validacao_reposicao');
     campoValidacao.removeAttribute('required');
     campoValidacao.setCustomValidity('');
@@ -413,11 +450,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    const radiosReposicao = document.querySelectorAll('#modalReposicao input[type="radio"]');
-    radiosReposicao.forEach(radio => {
-        radio.addEventListener('change', () => {
-            const itemDiv = radio.closest('.item-limpeza');
-            itemDiv.classList.remove('erro');
+    // Event listeners para botões de quantidade
+    document.querySelectorAll('.btn-mais').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.getAttribute('data-item');
+            incrementarQuantidade(item);
+        });
+    });
+
+    document.querySelectorAll('.btn-menos').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const item = btn.getAttribute('data-item');
+            decrementarQuantidade(item);
         });
     });
 
@@ -436,28 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-        let reposicaoVazio = false;
-
-        itensReposicao.forEach(item => {
-            const valor = document.getElementById(`${item}_hidden`).value;
-            if (!valor || valor === '') {
-                reposicaoVazio = true;
-            }
-        });
-
-        if (reposicaoVazio) {
-            e.preventDefault();
-            const campoValidacao = document.getElementById('validacao_reposicao');
-            campoValidacao.setAttribute('required', 'required');
-            campoValidacao.setCustomValidity(' preencha todos os itens de reposição');
-            campoValidacao.reportValidity();
-
-            setTimeout(() => {
-                abrirModalReposicao();
-            }, 100);
-            return false;
-        }
+        // Validação de reposição removida - agora 0 é um valor válido
+        // Os campos sempre terão valor (0 ou maior)
 
         if (tipoLimpeza === '2') { 
             const itensLimpeza = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];

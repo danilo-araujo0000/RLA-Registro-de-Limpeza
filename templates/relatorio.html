@@ -4,31 +4,30 @@
 {% block title %}Relatório de Limpeza{% endblock %}
 
 {% block style %}
-    <link rel="stylesheet" type="text/css" href="{% static 'css/relatorio.css' %}">
-    <style>
-        @keyframes spin {
-            from {
-                transform: rotate(0deg);
-            }
-            to {
-                transform: rotate(360deg);
-            }
+<link rel="stylesheet" type="text/css" href="{% static 'css/relatorio.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
         }
-    </style>
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="card">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <a href="{% url 'salas_view' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Voltar
-        </a>
-        <a href="{% url 'logout_relatorio_view' %}" class="btn btn-danger">
+<div class="card p-3 mb-3" style="margin-top: -15px;">
+    <div class="d-flex justify-content-end align-items-center mb-2">
+        <a href="{% url 'logout_relatorio_view' %}" class="btn btn-sm btn-outline-secondary">
             <i class="fas fa-sign-out-alt"></i> Sair
         </a>
     </div>
 
-    <div class="filter-section">
+    <div class="filter-section p-2">
         <div class="row g-3">
             <div class="col-lg-3 col-md-6">
                 <label class="form-label"><i class="fas fa-search"></i> Pesquisar</label>
@@ -40,6 +39,15 @@
                     <option value="">Todos</option>
                     <option value="terminal">Terminal</option>
                     <option value="concorrente">Concorrente</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4" id="criticidadeContainer" style="display: none;">
+                <label class="form-label"><i class="fas fa-exclamation-triangle"></i> Criticidade</label>
+                <select id="criticidadeFilter" class="form-select">
+                    <option value="">Todas</option>
+                    <option value="crítico">Crítico</option>
+                    <option value="semi-crítico">Semi-crítico</option>
+                    <option value="não-crítico">Não crítico</option>
                 </select>
             </div>
             <div class="col-lg-2 col-md-4">
@@ -64,15 +72,19 @@
             <div class="col-md-2">
                 <label class="form-label d-block"><i class="fas fa-building"></i> Setores</label>
                 <div class="border rounded" style="background-color: #fff; position: relative;">
-                    <button type="button" class="btn w-100 text-start d-flex justify-content-between align-items-center" id="toggleSetores" style="border: none; background: transparent; padding: 8px 12px;">
+                    <button type="button" class="btn w-100 text-start d-flex justify-content-between align-items-center"
+                        id="toggleSetores" style="border: none; background: transparent; padding: 8px 12px;">
                         <span style="font-size: 0.9rem;">Selecionar setores</span>
                         <i class="fas fa-chevron-down" id="chevronSetores" style="font-size: 0.85rem;"></i>
                     </button>
-                    <div id="setoresList" class="border-top" style="max-height: 300px; overflow-y: auto; display: none; position: absolute; z-index: 1000; background: white; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                    <div id="setoresList" class="border-top"
+                        style="max-height: 300px; overflow-y: auto; display: none; position: absolute; z-index: 1000; background: white; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
                         <div class="p-3">
                             <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="setorTodos" data-setor="" data-index="-1" checked>
-                                <label class="form-check-label d-flex align-items-center gap-2" for="setorTodos" style="cursor: pointer;">
+                                <input class="form-check-input" type="checkbox" id="setorTodos" data-setor=""
+                                    data-index="-1" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2" for="setorTodos"
+                                    style="cursor: pointer;">
                                     <span class="setor-badge setor-color-all">
                                         <i class="fas fa-layer-group"></i> Todos
                                     </span>
@@ -81,8 +93,11 @@
                             <hr class="my-2">
                             {% for setor in setores %}
                             <div class="form-check mb-2">
-                                <input class="form-check-input setor-checkbox" type="checkbox" id="setor{{ setor.id }}" data-setor="{{ setor.nome }}" data-id="{{ setor.id }}" data-color="{{ setor.color }}">
-                                <label class="form-check-label d-flex align-items-center gap-2" for="setor{{ setor.id }}" style="cursor: pointer;">
+                                <input class="form-check-input setor-checkbox" type="checkbox" id="setor{{ setor.id }}"
+                                    data-setor="{{ setor.nome }}" data-id="{{ setor.id }}"
+                                    data-color="{{ setor.color }}">
+                                <label class="form-check-label d-flex align-items-center gap-2"
+                                    for="setor{{ setor.id }}" style="cursor: pointer;">
                                     <span class="setor-badge {{ setor.color }}" data-setor="{{ setor.nome }}">
                                         <i class="fas fa-building"></i> {{ setor.nome }}
                                     </span>
@@ -94,17 +109,66 @@
                 </div>
                 <input type="hidden" id="setorFilter" value="">
             </div>
+            <div class="col-md-2">
+                <label class="form-label d-block"><i class="fas fa-door-open"></i> Salas</label>
+                <div class="border rounded" style="background-color: #fff; position: relative;">
+                    <button type="button" class="btn w-100 text-start d-flex justify-content-between align-items-center"
+                        id="toggleSalas" style="border: none; background: transparent; padding: 8px 12px;">
+                        <span style="font-size: 0.9rem;" id="salasBtnText">Selecionar salas</span>
+                        <i class="fas fa-chevron-down" id="chevronSalas" style="font-size: 0.85rem;"></i>
+                    </button>
+                    <div id="salasList" class="border-top"
+                        style="max-height: 300px; overflow-y: auto; display: none; position: absolute; z-index: 1000; background: white; width: 100%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <div class="p-2 border-bottom sticky-top bg-white">
+                            <input type="text" id="salaSearchInput" class="form-control form-control-sm"
+                                placeholder="Buscar sala...">
+                        </div>
+                        <div class="p-3">
+                            <div class="form-check mb-2 sala-item">
+                                <input class="form-check-input" type="checkbox" id="salaTodas" data-sala="" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2" for="salaTodas"
+                                    style="cursor: pointer;">
+                                    <span style="font-size: 0.9rem; font-weight: 500;">
+                                        <i class="fas fa-layer-group"></i> Todas
+                                    </span>
+                                </label>
+                            </div>
+                            <hr class="my-2">
+                            {% for sala in salas %}
+                            <div class="form-check mb-2 sala-item" data-search-text="{{ sala.nome|lower }}">
+                                <input class="form-check-input sala-checkbox" type="checkbox"
+                                    id="sala{{ forloop.counter }}" data-sala="{{ sala.nome }}"
+                                    data-setor="{{ sala.setor }}">
+                                <label class="form-check-label" for="sala{{ forloop.counter }}"
+                                    style="cursor: pointer; font-size: 0.9rem;">
+                                    <i class="fas fa-door-open"></i> {{ sala.nome }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" id="salaFilter" value="">
+            </div>
         </div>
-        <div class="d-flex justify-content-between align-items-center">
-            <span id="resultCount" class="text-muted fw-bold">Total: {{ registros|length }} registros</span>
-            <div class="d-flex gap-2">
-                <button id="addNewBtn" class="btn btn-success" style="padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 3px 6px rgba(40,167,69,0.3); transition: all 0.3s ease;">
-                    <i class="fas fa-plus-circle"></i> Adicionar Novo
+        <div class="d-flex justify-content-between align-items-center mt-4 pt-2 border-top">
+            <span id="resultCount" class="text-muted fw-bold" style="font-size: 1.05rem;"><i class="fas fa-list-ol"></i>
+                Total: {{ registros|length }} registros</span>
+            <div class="d-flex gap-2 flex-wrap">
+                <button id="exportExcelBtn" class="btn btn-outline-success"
+                    style="padding: 10px 20px; border-radius: 8px; font-weight: 600;">
+                    <i class="fas fa-file-excel"></i> Exportar
                 </button>
-                <button id="refreshBtn" class="btn btn-primary" style="padding: 8px 20px; border-radius: 8px; font-weight: 500; box-shadow: 0 2px 4px rgba(0,123,255,0.2); transition: all 0.3s ease;">
+                <button id="addNewBtn" class="btn btn-primary"
+                    style="padding: 10px 20px; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,123,255,0.2);">
+                    <i class="fas fa-plus-circle"></i> Novo Registro
+                </button>
+                <button id="refreshBtn" class="btn btn-info text-white"
+                    style="padding: 10px 20px; border-radius: 8px; font-weight: 600; box-shadow: 0 2px 4px rgba(23,162,184,0.2);">
                     <i class="fas fa-sync-alt"></i> Atualizar
                 </button>
-                <button id="clearFilters" class="btn btn-outline-secondary" style="padding: 8px 20px; border-radius: 8px; font-weight: 500; transition: all 0.3s ease;">
+                <button id="clearFilters" class="btn btn-secondary"
+                    style="padding: 10px 20px; border-radius: 8px; font-weight: 600;">
                     <i class="fas fa-times-circle"></i> Limpar Filtros
                 </button>
             </div>
@@ -124,11 +188,25 @@
                     <th style="min-width: 150px;">Observações</th>
                     <th style="width: 180px;">Data e Hora</th>
                     <th style="width: 180px;">Ações</th>
+                    <th class="d-none">Portas</th>
+                    <th class="d-none">Teto</th>
+                    <th class="d-none">Paredes</th>
+                    <th class="d-none">Janelas</th>
+                    <th class="d-none">Piso</th>
+                    <th class="d-none">Superfície</th>
+                    <th class="d-none">Dispenser</th>
+                    <th class="d-none">Papel Hig.</th>
+                    <th class="d-none">Papel Toal.</th>
+                    <th class="d-none">Álcool</th>
+                    <th class="d-none">Sabonete</th>
                 </tr>
             </thead>
-                        <tbody id="tableBody">
+            <tbody id="tableBody">
                 {% for registro in registros %}
-                <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}" data-data="{{ registro.data_limpeza|date:'Y-m-d' }}" data-datahora="{{ registro.data_limpeza|date:'Y-m-d' }} {{ registro.hora_limpeza }}" data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
+                <tr data-setor="{{ registro.nome_setor }}" data-tipo="{{ registro.tipo_limpeza }}"
+                    data-data="{{ registro.data_limpeza|date:'Y-m-d' }}"
+                    data-datahora="{{ registro.data_limpeza|date:'Y-m-d' }} {{ registro.hora_limpeza }}"
+                    data-sala="{{ registro.nome_sala }}" data-registro-id="{{ registro.id_registro }}">
                     <td>{{ registro.id_registro }}</td>
                     <td>
                         <span class="setor-badge {{ registro.setor_color }}" data-setor="{{ registro.nome_setor }}">
@@ -142,35 +220,50 @@
                     </td>
                     <td>
                         {% if registro.criticidade and registro.criticidade != 'NA' %}
-                            {% with crit_slug=registro.criticidade|slugify %}
-                                {% if crit_slug == 'critico' %}
-                                    <span class="criticidade-badge criticidade-critico">{{ registro.criticidade }}</span>
-                                {% elif crit_slug == 'semi-critico' %}
-                                    <span class="criticidade-badge criticidade-semi-critico">{{ registro.criticidade }}</span>
-                                {% elif crit_slug == 'nao-critico' %}
-                                    <span class="criticidade-badge criticidade-nao-critico">{{ registro.criticidade }}</span>
-                                {% else %}
-                                    <span class="criticidade-badge criticidade-desconhecida">{{ registro.criticidade }}</span>
-                                {% endif %}
-                            {% endwith %}
+                        {% with crit_slug=registro.criticidade|slugify %}
+                        {% if crit_slug == 'critico' %}
+                        <span class="criticidade-badge criticidade-critico">{{ registro.criticidade }}</span>
+                        {% elif crit_slug == 'semi-critico' %}
+                        <span class="criticidade-badge criticidade-semi-critico">{{ registro.criticidade }}</span>
+                        {% elif crit_slug == 'nao-critico' %}
+                        <span class="criticidade-badge criticidade-nao-critico">{{ registro.criticidade }}</span>
                         {% else %}
-                            -
+                        <span class="criticidade-badge criticidade-desconhecida">{{ registro.criticidade }}</span>
+                        {% endif %}
+                        {% endwith %}
+                        {% else %}
+                        -
                         {% endif %}
                     </td>
-                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ registro.obs }}">
+                    <td style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+                        title="{{ registro.obs }}">
                         {{ registro.obs|default:"-" }}
                     </td>
                     <td>{{ registro.data_limpeza|date:"d/m" }} às {{ registro.hora_limpeza }}</td>
                     <td>
                         <div class="d-flex">
-                            <button class="btn btn-info btn-sm" onclick="mostrarItensLimpeza({{ registro.id_registro }})">
+                            <button class="btn btn-info btn-sm"
+                                onclick="mostrarItensLimpeza({{ registro.id_registro }})">
                                 <i class="fas fa-info-circle"></i> Info
                             </button>
-                            <button class="btn btn-secondary btn-sm ms-1" onclick="abrirModalEdicao({{ registro.id_registro }})">
+                            <button class="btn btn-secondary btn-sm ms-1"
+                                onclick="abrirModalEdicao({{ registro.id_registro }})">
                                 <i class="fas fa-pencil-alt"></i> Editar
                             </button>
                         </div>
                     </td>
+                    <td class="d-none">{{ registro.portas|default:"-" }}</td>
+                    <td class="d-none">{{ registro.teto|default:"-" }}</td>
+                    <td class="d-none">{{ registro.paredes|default:"-" }}</td>
+                    <td class="d-none">{{ registro.janelas|default:"-" }}</td>
+                    <td class="d-none">{{ registro.piso|default:"-" }}</td>
+                    <td class="d-none">{{ registro.superficie_mobiliario|default:"-" }}</td>
+                    <td class="d-none">{{ registro.dispenser|default:"-" }}</td>
+
+                    <td class="d-none">{{ registro.papel_hig|default:"0" }}</td>
+                    <td class="d-none">{{ registro.papel_toalha|default:"0" }}</td>
+                    <td class="d-none">{{ registro.alcool|default:"0" }}</td>
+                    <td class="d-none">{{ registro.sabonete|default:"0" }}</td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -198,19 +291,20 @@
                         <small class="text-muted"></small>
                     </label>
 
-                    
+
                     <div id="avisoContainerEdit"></div>
 
-                    
+
                     <div id="colaboradoresContainerEdit"></div>
 
-                    
+
                     <div style="position: relative;" id="searchContainerEdit">
-                        <input type="text" id="colaboradorSearchEdit" class="form-control" autocomplete="off" placeholder="Selecionar colaborador..." readonly>
+                        <input type="text" id="colaboradorSearchEdit" class="form-control" autocomplete="off"
+                            placeholder="Selecionar colaborador..." readonly>
                         <ul id="colaboradorListEdit" class="autocomplete-list"></ul>
                     </div>
 
-                    
+
                     <input type="hidden" id="colaboradoresJsonEdit" required>
                 </div>
 
@@ -246,16 +340,20 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <button type="button" class="btn btn-primary w-100" id="btnAbrirModalEdicaoLimpeza" style="font-size: 16px; padding: 14px;">
+                        <button type="button" class="btn btn-primary w-100" id="btnAbrirModalEdicaoLimpeza"
+                            style="font-size: 16px; padding: 14px;">
                             <i class="fas fa-list-check"></i> Selecionar Itens de Limpeza
-                            <span id="contadorItensEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+                            <span id="contadorItensEdicao"
+                                style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
                         </button>
                     </div>
                 </div>
                 <div class="mb-3">
-                    <button type="button" class="btn btn-success w-100" id="btnAbrirModalEdicaoReposicao" style="font-size: 16px; padding: 14px;">
+                    <button type="button" class="btn btn-success w-100" id="btnAbrirModalEdicaoReposicao"
+                        style="font-size: 16px; padding: 14px;">
                         <i class="fas fa-box"></i> REPOSIÇÃO
-                        <span id="contadorReposicaoEdicao" style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
+                        <span id="contadorReposicaoEdicao"
+                            style="display: none; margin-left: 10px; background: rgba(255,255,255,0.3); padding: 4px 10px; border-radius: 12px; font-size: 13px; font-weight: 700;"></span>
                     </button>
                 </div>
                 <div class="mb-3">
@@ -425,7 +523,8 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalLimpezaEdicao" style="font-size: 20px; padding: 18px;">
+            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalLimpezaEdicao"
+                style="font-size: 20px; padding: 18px;">
                 <i class="fas fa-check"></i> Confirmar
             </button>
         </div>
@@ -440,52 +539,72 @@
         </div>
         <div class="modal-body">
             <div class="item-limpeza">
-                <label class="item-label">Papel Higiênico</label>
-                <div class="item-opcoes">
-                    <label class="radio-label">
-                        <input type="radio" name="modal_papel_hig" value="S"> SIM
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="modal_papel_hig" value="N"> NÃO
-                    </label>
+                <label class="item-label">
+                    <i class="fas fa-toilet-paper"></i> Papel Higiênico
+                </label>
+                <div class="item-contador">
+                    <button type="button" class="btn-quantidade btn-menos" data-item="papel_hig" data-modal="edicao">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="input-quantidade" id="display_papel_hig_edicao" value="0" readonly
+                        min="0" max="999">
+                    <button type="button" class="btn-quantidade btn-mais" data-item="papel_hig" data-modal="edicao">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </div>
+
             <div class="item-limpeza">
-                <label class="item-label">Papel Toalha</label>
-                <div class="item-opcoes">
-                    <label class="radio-label">
-                        <input type="radio" name="modal_papel_toalha" value="S"> SIM
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="modal_papel_toalha" value="N"> NÃO
-                    </label>
+                <label class="item-label">
+                    <i class="fas fa-hand-paper"></i> Papel Toalha
+                </label>
+                <div class="item-contador">
+                    <button type="button" class="btn-quantidade btn-menos" data-item="papel_toalha" data-modal="edicao">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="input-quantidade" id="display_papel_toalha_edicao" value="0" readonly
+                        min="0" max="999">
+                    <button type="button" class="btn-quantidade btn-mais" data-item="papel_toalha" data-modal="edicao">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </div>
+
             <div class="item-limpeza">
-                <label class="item-label">Álcool</label>
-                <div class="item-opcoes">
-                    <label class="radio-label">
-                        <input type="radio" name="modal_alcool" value="S"> SIM
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="modal_alcool" value="N"> NÃO
-                    </label>
+                <label class="item-label">
+                    <i class="fas fa-spray-can"></i> Álcool
+                </label>
+                <div class="item-contador">
+                    <button type="button" class="btn-quantidade btn-menos" data-item="alcool" data-modal="edicao">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="input-quantidade" id="display_alcool_edicao" value="0" readonly min="0"
+                        max="999">
+                    <button type="button" class="btn-quantidade btn-mais" data-item="alcool" data-modal="edicao">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </div>
+
             <div class="item-limpeza">
-                <label class="item-label">Sabonete</label>
-                <div class="item-opcoes">
-                    <label class="radio-label">
-                        <input type="radio" name="modal_sabonete" value="S"> SIM
-                    </label>
-                    <label class="radio-label">
-                        <input type="radio" name="modal_sabonete" value="N"> NÃO
-                    </label>
+                <label class="item-label">
+                    <i class="fas fa-pump-soap"></i> Sabonete
+                </label>
+                <div class="item-contador">
+                    <button type="button" class="btn-quantidade btn-menos" data-item="sabonete" data-modal="edicao">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" class="input-quantidade" id="display_sabonete_edicao" value="0" readonly
+                        min="0" max="999">
+                    <button type="button" class="btn-quantidade btn-mais" data-item="sabonete" data-modal="edicao">
+                        <i class="fas fa-plus"></i>
+                    </button>
                 </div>
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalReposicaoEdicao" style="font-size: 20px; padding: 18px;">
+            <button type="button" class="btn btn-success w-100" id="btnConfirmarModalReposicaoEdicao"
+                style="font-size: 20px; padding: 18px;">
                 <i class="fas fa-check"></i> Confirmar
             </button>
         </div>
@@ -497,6 +616,8 @@
 <script>
     const searchInput = document.getElementById('searchInput');
     const tipoFilter = document.getElementById('tipoFilter');
+    const criticidadeFilter = document.getElementById('criticidadeFilter');
+    const criticidadeContainer = document.getElementById('criticidadeContainer');
     const sortBy = document.getElementById('sortBy');
     const dataInicio = document.getElementById('dataInicio');
     const dataFim = document.getElementById('dataFim');
@@ -506,6 +627,8 @@
     const setorTodos = document.getElementById('setorTodos');
     const setorCheckboxes = Array.from(document.querySelectorAll('.setor-checkbox'));
     const setorBadges = Array.from(document.querySelectorAll('.setor-badge'));
+    const salaTodas = document.getElementById('salaTodas');
+    const salaCheckboxes = Array.from(document.querySelectorAll('.sala-checkbox'));
     const setorColors = [
         'setor-color-0', 'setor-color-1', 'setor-color-2', 'setor-color-3',
         'setor-color-4', 'setor-color-5', 'setor-color-6', 'setor-color-7',
@@ -521,9 +644,7 @@
         dataInicio.value = urlParams.get('data_inicio');
     } else {
         const hoje = new Date();
-        const tresDiasAtras = new Date(hoje);
-        tresDiasAtras.setDate(hoje.getDate() - 3);
-        dataInicio.value = tresDiasAtras.toISOString().split('T')[0];
+        dataInicio.value = hoje.toISOString().split('T')[0];
     }
     if (urlParams.get('data_fim')) {
         dataFim.value = urlParams.get('data_fim');
@@ -547,18 +668,46 @@
             });
         }
 
+        const selectedSalas = [];
+        if (salaTodas.checked) {
+            selectedSalas.push('todas');
+        } else {
+            salaCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selectedSalas.push(checkbox.dataset.sala);
+                }
+            });
+        }
+
         let visibleCount = 0;
+        const selectedCriticidade = criticidadeFilter.value;
 
         allRows.forEach(row => {
             const text = row.textContent.toLowerCase();
             const setor = row.dataset.setor;
+            const sala = row.dataset.sala;
             const tipo = row.dataset.tipo;
+            const rowBodyText = text; // todo texto da linha, onde estará escrito a criticidade (ex: "crítico", "não-crítico")
 
             const matchSearch = text.includes(searchTerm);
             const matchSetor = selectedSetores.includes('todos') || selectedSetores.includes(setor);
+            const matchSala = selectedSalas.includes('todas') || selectedSalas.includes(sala);
             const matchTipo = !selectedTipo || tipo === selectedTipo;
 
-            if (matchSearch && matchSetor && matchTipo) {
+            let matchCriticidade = true;
+            if (selectedTipo === 'terminal' && selectedCriticidade) {
+                const criticidadeCellText = row.cells[5].textContent.toLowerCase().trim();
+
+                if (selectedCriticidade === 'crítico') {
+                    matchCriticidade = criticidadeCellText === 'crítico';
+                } else if (selectedCriticidade === 'semi-crítico') {
+                    matchCriticidade = criticidadeCellText.includes('semi');
+                } else if (selectedCriticidade === 'não-crítico') {
+                    matchCriticidade = criticidadeCellText.includes('não');
+                }
+            }
+
+            if (matchSearch && matchSetor && matchSala && matchTipo && matchCriticidade) {
                 row.style.display = '';
                 visibleCount++;
             } else {
@@ -606,11 +755,30 @@
         applyFilters();
     });
 
+    salaCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+                salaTodas.checked = false;
+            }
+            applyFilters();
+        });
+    });
+
+    salaTodas.addEventListener('change', () => {
+        if (salaTodas.checked) {
+            salaCheckboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        applyFilters();
+    });
+
     const toggleSetores = document.getElementById('toggleSetores');
     const setoresList = document.getElementById('setoresList');
     const chevronSetores = document.getElementById('chevronSetores');
 
-    toggleSetores.addEventListener('click', () => {
+    toggleSetores.addEventListener('click', (e) => {
+        e.stopPropagation();
         if (setoresList.style.display === 'none') {
             setoresList.style.display = 'block';
             chevronSetores.classList.remove('fa-chevron-down');
@@ -622,12 +790,99 @@
         }
     });
 
+    const toggleSalas = document.getElementById('toggleSalas');
+    const salasList = document.getElementById('salasList');
+    const chevronSalas = document.getElementById('chevronSalas');
+
+    toggleSalas.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (salasList.style.display === 'none') {
+            salasList.style.display = 'block';
+            chevronSalas.classList.remove('fa-chevron-down');
+            chevronSalas.classList.add('fa-chevron-up');
+            // Focar no campo de busca ao abrir
+            setTimeout(() => document.getElementById('salaSearchInput').focus(), 50);
+        } else {
+            salasList.style.display = 'none';
+            chevronSalas.classList.remove('fa-chevron-up');
+            chevronSalas.classList.add('fa-chevron-down');
+            document.getElementById('salaSearchInput').value = '';
+            document.querySelectorAll('.sala-item').forEach(item => item.style.display = '');
+        }
+    });
+
+    // Evitar que clique dentro da lista feche ela mesma pelo listener global
+    salasList.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Evitar que clique dentro da lista de setores feche ela mesma
+    setoresList.addEventListener('click', (e) => {
+        e.stopPropagation();
+    });
+
+    // Fechar dropdowns ao clicar fora
+    document.addEventListener('click', (e) => {
+        // Fechar setores
+        if (setoresList.style.display === 'block' && e.target !== toggleSetores && !toggleSetores.contains(e.target)) {
+            setoresList.style.display = 'none';
+            chevronSetores.classList.remove('fa-chevron-up');
+            chevronSetores.classList.add('fa-chevron-down');
+        }
+        // Fechar salas
+        if (salasList.style.display === 'block' && e.target !== toggleSalas && !toggleSalas.contains(e.target)) {
+            salasList.style.display = 'none';
+            chevronSalas.classList.remove('fa-chevron-up');
+            chevronSalas.classList.add('fa-chevron-down');
+            // Limpa a busca ao fechar
+            const input = document.getElementById('salaSearchInput');
+            if (input) input.value = '';
+            document.querySelectorAll('.sala-item').forEach(item => item.style.display = '');
+        }
+    });
+
+    // Lógica para busca dentro da lista de salas
+    const salaSearchInput = document.getElementById('salaSearchInput');
+    salaSearchInput.addEventListener('input', function (e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const salaItems = document.querySelectorAll('.sala-item');
+
+        salaItems.forEach(item => {
+            if (item.querySelector('#salaTodas')) {
+                return; // Pula o item "Todas" se existir na mesma div com classe sala-item (garantiria q qlq busca mantenha Todas, ou você pode ocultar tbm, aqui faremos ocultar tbm caso não seja "Todas")
+                // Ajuste: Apenas buscará no data-search-text
+            }
+            if (!item.hasAttribute('data-search-text')) return;
+
+            const searchText = item.getAttribute('data-search-text');
+            if (searchText.includes(searchTerm)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    });
+
+    // Impedir que clique no campo de busca feche o dropdown
+    salaSearchInput.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
     searchInput.addEventListener('input', applyFilters);
-    tipoFilter.addEventListener('change', applyFilters);
+    tipoFilter.addEventListener('change', () => {
+        if (tipoFilter.value === 'terminal') {
+            criticidadeContainer.style.display = 'block';
+        } else {
+            criticidadeContainer.style.display = 'none';
+            criticidadeFilter.value = '';
+        }
+        applyFilters();
+    });
+    criticidadeFilter.addEventListener('change', applyFilters);
 
     sortTable();
 
-    dataInicio.addEventListener('change', function() {
+    dataInicio.addEventListener('change', function () {
         const params = new URLSearchParams(window.location.search);
         if (dataInicio.value) {
             params.set('data_inicio', dataInicio.value);
@@ -639,7 +894,7 @@
         }
         window.location.search = params.toString();
     });
-    dataFim.addEventListener('change', function() {
+    dataFim.addEventListener('change', function () {
         const params = new URLSearchParams(window.location.search);
         if (dataFim.value) {
             params.set('data_fim', dataFim.value);
@@ -659,20 +914,20 @@
 
     const refreshBtn = document.getElementById('refreshBtn');
 
-    refreshBtn.addEventListener('mouseenter', function() {
+    refreshBtn.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-2px)';
         this.style.boxShadow = '0 4px 8px rgba(0,123,255,0.3)';
     });
-    refreshBtn.addEventListener('mouseleave', function() {
+    refreshBtn.addEventListener('mouseleave', function () {
         this.style.transform = 'translateY(0)';
         this.style.boxShadow = '0 2px 4px rgba(0,123,255,0.2)';
     });
 
-    clearFilters.addEventListener('mouseenter', function() {
+    clearFilters.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-2px)';
         this.style.boxShadow = '0 2px 6px rgba(0,0,0,0.15)';
     });
-    clearFilters.addEventListener('mouseleave', function() {
+    clearFilters.addEventListener('mouseleave', function () {
         this.style.transform = 'translateY(0)';
         this.style.boxShadow = 'none';
     });
@@ -688,13 +943,139 @@
         }, 300);
     });
 
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', () => {
+            const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
+
+            if (visibleRows.length === 0) {
+                alert("Nenhum registro para exportar!");
+                return;
+            }
+
+            // Mapeando dados para formato de planilha
+            const data = visibleRows.map(row => {
+                const cells = row.querySelectorAll('td');
+                // Regex para limpar o texto de ícones e quebras de linha em branco extras
+                const setorTexto = cells[1].innerText.trim().replace(/\n/g, ' ');
+                const colaboradorTexto = cells[3].innerText.trim().replace(/\n/g, '; ');
+                const dataHoraFull = cells[7].innerText.trim();
+
+                return {
+                    'ID': cells[0].innerText.trim(),
+                    'Setor': setorTexto,
+                    'Sala': cells[2].innerText.trim(),
+                    'Colaborador': colaboradorTexto,
+                    'Tipo': cells[4].innerText.trim(),
+                    'Criticidade': cells[5].innerText.trim() === '-' ? '' : cells[5].innerText.trim(),
+                    'Observações': cells[6].innerText.trim() === '-' ? '' : cells[6].innerText.trim(),
+                    'Data e Hora': dataHoraFull,
+                    'Portas': cells[9].innerText.trim(),
+                    'Teto': cells[10].innerText.trim(),
+                    'Paredes': cells[11].innerText.trim(),
+                    'Janelas': cells[12].innerText.trim(),
+                    'Piso': cells[13].innerText.trim(),
+                    'Superfície': cells[14].innerText.trim(),
+                    'Dispenser': cells[15].innerText.trim(),
+                    'Papel Hig.': cells[16].innerText.trim() === 'None' ? '0' : cells[16].innerText.trim(),
+                    'Papel Toal.': cells[17].innerText.trim() === 'None' ? '0' : cells[17].innerText.trim(),
+                    'Álcool': cells[18].innerText.trim() === 'None' ? '0' : cells[18].innerText.trim(),
+                    'Sabonete': cells[19].innerText.trim() === 'None' ? '0' : cells[19].innerText.trim()
+                };
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+
+            // Adicionar estilos
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = { c: C, r: R };
+                    const cell_ref = XLSX.utils.encode_cell(cell_address);
+                    if (!ws[cell_ref]) continue;
+
+                    let cellStyle = {
+                        font: { name: "Arial", sz: 10 },
+                        alignment: { vertical: "center", horizontal: "center" },
+                        border: {
+                            top: { style: "thin", color: { auto: 1 } },
+                            bottom: { style: "thin", color: { auto: 1 } },
+                            left: { style: "thin", color: { auto: 1 } },
+                            right: { style: "thin", color: { auto: 1 } }
+                        }
+                    };
+
+                    // Linha 0 (Cabeçalhos)
+                    if (R === 0) {
+                        cellStyle.font.bold = true;
+                        cellStyle.fill = { fgColor: { rgb: "E0E0E0" } };
+                    } else {
+                        // Linha de dados
+                        const cellValue = ws[cell_ref].v;
+                        if (typeof cellValue === 'string') {
+                            const valLower = cellValue.toLowerCase();
+
+                            // Regras de Cores (Tons claros)
+                            if (valLower === 'concorrente') {
+                                cellStyle.fill = { fgColor: { rgb: "FFF2CC" } }; // Amarelo Claro
+                            } else if (valLower === 'terminal') {
+                                cellStyle.fill = { fgColor: { rgb: "D9EAD3" } }; // Verde Claro (Terminal fica melhor verde, mas vc pediu Azul claro: D0E0E3)
+                                cellStyle.fill = { fgColor: { rgb: "C9DAF8" } }; // Azul Claro para Terminal conforme pedido
+                            } else if (valLower === 'crítico') {
+                                cellStyle.fill = { fgColor: { rgb: "F4CCCC" } }; // Vermelho Claro
+                            } else if (valLower === 'semi-crítico' || valLower === 'semi-critico') {
+                                cellStyle.fill = { fgColor: { rgb: "FCE5CD" } }; // Laranja Claro
+                            } else if (valLower === 'não-crítico' || valLower === 'nao-critico') {
+                                cellStyle.fill = { fgColor: { rgb: "C9DAF8" } }; // Azul Claro
+                            }
+                        }
+                    }
+
+                    ws[cell_ref].s = cellStyle;
+                }
+            }
+
+            // Ajustar largura das colunas
+            const wscols = [
+                { wch: 8 },  // ID
+                { wch: 25 }, // Setor
+                { wch: 20 }, // Sala
+                { wch: 35 }, // Colaborador
+                { wch: 15 }, // Tipo
+                { wch: 15 }, // Criticidade
+                { wch: 40 }, // Observações
+                { wch: 20 },  // Data e Hora
+                { wch: 10 }, // Portas
+                { wch: 10 }, // Teto
+                { wch: 10 }, // Paredes
+                { wch: 10 }, // Janelas
+                { wch: 10 }, // Piso
+                { wch: 12 }, // Superfície
+                { wch: 12 }, // Dispenser
+                { wch: 12 }, // Papel Hig.
+                { wch: 12 }, // Papel Toal.
+                { wch: 10 }, // Álcool
+                { wch: 12 }  // Sabonete
+            ];
+            ws['!cols'] = wscols;
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+
+            const dataRef = new Date().toISOString().split('T')[0];
+            const nomeArquivo = `Relatorio_Limpeza_${dataRef}.xlsx`;
+
+            XLSX.writeFile(wb, nomeArquivo);
+        });
+    }
+
     const addNewBtn = document.getElementById('addNewBtn');
 
-    addNewBtn.addEventListener('mouseenter', function() {
+    addNewBtn.addEventListener('mouseenter', function () {
         this.style.transform = 'translateY(-2px)';
         this.style.boxShadow = '0 5px 12px rgba(40,167,69,0.4)';
     });
-    addNewBtn.addEventListener('mouseleave', function() {
+    addNewBtn.addEventListener('mouseleave', function () {
         this.style.transform = 'translateY(0)';
         this.style.boxShadow = '0 3px 6px rgba(40,167,69,0.3)';
     });
@@ -724,11 +1105,11 @@
     let currentEditId = null;
     let currentRegistroData = null;
 
-    
+
     let colaboradoresSelecionadosEdit = [];
     const MAX_COLABORADORES = 5;
-    
-    const todosColaboradoresEdit = {{ colaboradores|safe }} || [];
+
+    const todosColaboradoresEdit = {{ colaboradores| safe }} || [];
 
     function mostrarAvisoEdit(mensagem) {
         const avisoContainer = document.getElementById('avisoContainerEdit');
@@ -878,24 +1259,75 @@
         modal.querySelectorAll('.item-limpeza').forEach(item => item.classList.remove('erro', 'completo'));
     }
 
+    // Quantidades de reposição para edição
+    const quantidadesEdicao = {
+        papel_hig: 0,
+        papel_toalha: 0,
+        alcool: 0,
+        sabonete: 0
+    };
+
     function preencherModalEdicao(tipo) {
         if (!currentRegistroData) return;
         const modal = modaisEdicao[tipo];
         if (!modal) return;
         limparMarcacoesModal(modal);
-        itensPorTipo[tipo].forEach(chave => {
-            const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
-            const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
-            radios.forEach(radio => {
-                radio.checked = radio.value === valor;
+
+        if (tipo === 'reposicao') {
+            // Para reposição, carregar quantidades
+            itensPorTipo[tipo].forEach(chave => {
+                const valor = parseInt(currentRegistroData[chave]) || 0;
+                quantidadesEdicao[chave] = valor;
+                atualizarDisplayQuantidadeEdicao(chave);
             });
-            if (['S', 'N', 'NA'].includes(valor) && radios.length) {
-                const itemDiv = radios[0].closest('.item-limpeza');
-                if (itemDiv) {
-                    itemDiv.classList.add('completo');
+        } else {
+            // Para limpeza, manter lógica de radio buttons
+            itensPorTipo[tipo].forEach(chave => {
+                const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
+                const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
+                radios.forEach(radio => {
+                    radio.checked = radio.value === valor;
+                });
+                if (['S', 'N', 'NA'].includes(valor) && radios.length) {
+                    const itemDiv = radios[0].closest('.item-limpeza');
+                    if (itemDiv) {
+                        itemDiv.classList.add('completo');
+                    }
                 }
+            });
+        }
+    }
+
+    function incrementarQuantidadeEdicao(item) {
+        const max = 999;
+        if (quantidadesEdicao[item] < max) {
+            quantidadesEdicao[item]++;
+            atualizarDisplayQuantidadeEdicao(item);
+        }
+    }
+
+    function decrementarQuantidadeEdicao(item) {
+        if (quantidadesEdicao[item] > 0) {
+            quantidadesEdicao[item]--;
+            atualizarDisplayQuantidadeEdicao(item);
+        }
+    }
+
+    function atualizarDisplayQuantidadeEdicao(item) {
+        const display = document.getElementById(`display_${item}_edicao`);
+        if (!display) return;
+
+        display.value = quantidadesEdicao[item];
+
+        const itemDiv = display.closest('.item-limpeza');
+        if (itemDiv) {
+            if (quantidadesEdicao[item] > 0) {
+                itemDiv.classList.add('completo');
+                itemDiv.classList.remove('erro');
+            } else {
+                itemDiv.classList.remove('completo', 'erro');
             }
-        });
+        }
     }
 
     function abrirModalEdicaoItens(tipo) {
@@ -916,15 +1348,31 @@
         const contador = contadoresEdicao[tipo];
         if (!contador || !currentRegistroData) return;
         const itens = itensPorTipo[tipo];
-        const preenchidos = itens.every(chave => {
-            const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
-            return ['S', 'N', 'NA'].includes(valor);
-        });
-        if (preenchidos) {
-            contador.textContent = `${itens.length}/${itens.length}`;
-            contador.style.display = 'inline';
+
+        if (tipo === 'reposicao') {
+            // Para reposição, mostrar total de itens
+            const total = itens.reduce((sum, chave) => {
+                return sum + (parseInt(currentRegistroData[chave]) || 0);
+            }, 0);
+
+            if (total > 0) {
+                contador.textContent = `Total: ${total} ${total === 1 ? 'item' : 'itens'}`;
+                contador.style.display = 'inline';
+            } else {
+                contador.style.display = 'none';
+            }
         } else {
-            contador.style.display = 'none';
+            // Para limpeza, manter lógica de contagem
+            const preenchidos = itens.every(chave => {
+                const valor = (currentRegistroData[chave] || '').toString().toUpperCase();
+                return ['S', 'N', 'NA'].includes(valor);
+            });
+            if (preenchidos) {
+                contador.textContent = `${itens.length}/${itens.length}`;
+                contador.style.display = 'inline';
+            } else {
+                contador.style.display = 'none';
+            }
         }
     }
 
@@ -933,44 +1381,55 @@
         const modal = modaisEdicao[tipo];
         if (!modal) return;
         const itens = itensPorTipo[tipo];
-        let todosPreenchidos = true;
 
-        itens.forEach(chave => {
-            const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
-            const selecionado = modal.querySelector(`input[name="modal_${chave}"]:checked`);
-            const itemDiv = radios.length ? radios[0].closest('.item-limpeza') : null;
-            if (itemDiv) {
-                itemDiv.classList.remove('erro', 'completo');
-            }
+        if (tipo === 'reposicao') {
+            // Para reposição, salvar quantidades
+            itens.forEach(chave => {
+                currentRegistroData[chave] = quantidadesEdicao[chave];
+            });
+            atualizarContadorEdicao(tipo);
+            fecharModalEdicaoItens(tipo);
+        } else {
+            // Para limpeza, manter lógica de radio buttons
+            let todosPreenchidos = true;
 
-            if (selecionado) {
+            itens.forEach(chave => {
+                const radios = modal.querySelectorAll(`input[name="modal_${chave}"]`);
+                const selecionado = modal.querySelector(`input[name="modal_${chave}"]:checked`);
+                const itemDiv = radios.length ? radios[0].closest('.item-limpeza') : null;
                 if (itemDiv) {
-                    itemDiv.classList.add('completo');
+                    itemDiv.classList.remove('erro', 'completo');
                 }
-                currentRegistroData[chave] = selecionado.value;
-            } else {
-                todosPreenchidos = false;
-                if (itemDiv) {
-                    itemDiv.classList.add('erro');
-                }
-            }
-        });
 
-        if (!todosPreenchidos) {
-            const primeiroErro = modal.querySelector('.item-limpeza.erro');
-            if (primeiroErro) {
-                primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                if (selecionado) {
+                    if (itemDiv) {
+                        itemDiv.classList.add('completo');
+                    }
+                    currentRegistroData[chave] = selecionado.value;
+                } else {
+                    todosPreenchidos = false;
+                    if (itemDiv) {
+                        itemDiv.classList.add('erro');
+                    }
+                }
+            });
+
+            if (!todosPreenchidos) {
+                const primeiroErro = modal.querySelector('.item-limpeza.erro');
+                if (primeiroErro) {
+                    primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return;
             }
-            return;
+
+            atualizarContadorEdicao(tipo);
+            fecharModalEdicaoItens(tipo);
         }
-
-        atualizarContadorEdicao(tipo);
-        fecharModalEdicaoItens(tipo);
     }
 
-    [modalItensLimpezaEdicao, modalReposicaoEdicao].forEach(modal => {
-        if (!modal) return;
-        modal.querySelectorAll('input[type="radio"]').forEach(radio => {
+    // Event listeners para radio buttons de limpeza
+    if (modalItensLimpezaEdicao) {
+        modalItensLimpezaEdicao.querySelectorAll('input[type="radio"]').forEach(radio => {
             radio.addEventListener('change', () => {
                 const itemDiv = radio.closest('.item-limpeza');
                 if (itemDiv) {
@@ -979,7 +1438,24 @@
                 }
             });
         });
-    });
+    }
+
+    // Event listeners para botões de quantidade de reposição
+    if (modalReposicaoEdicao) {
+        modalReposicaoEdicao.querySelectorAll('.btn-mais[data-modal="edicao"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.getAttribute('data-item');
+                incrementarQuantidadeEdicao(item);
+            });
+        });
+
+        modalReposicaoEdicao.querySelectorAll('.btn-menos[data-modal="edicao"]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const item = btn.getAttribute('data-item');
+                decrementarQuantidadeEdicao(item);
+            });
+        });
+    }
 
     const btnAbrirModalEdicaoLimpeza = document.getElementById('btnAbrirModalEdicaoLimpeza');
     if (btnAbrirModalEdicaoLimpeza) {
@@ -1172,20 +1648,36 @@
                     return { className: 'neutral', icon: 'fa-minus-circle' };
                 };
 
-                const renderStatusGrid = (itens) => {
+                const renderStatusGrid = (itens, isReposicao = false) => {
                     return `
                         <div class="info-status-grid">
                             ${itens.map((item) => {
-                                const status = statusFor(item.value);
-                                return `
-                                    <div class="info-status ${status.className}">
-                                        <div class="info-status-label">
-                                            <span>${escapeHtml(item.label)}</span>
+                        if (isReposicao) {
+                            // Para reposição, mostrar quantidade
+                            const quantidade = parseInt(item.value) || 0;
+                            const className = quantidade > 0 ? 'success' : 'neutral';
+                            const displayValue = quantidade > 0 ? `${quantidade} un.` : '0';
+                            return `
+                                        <div class="info-status ${className}">
+                                            <div class="info-status-label">
+                                                <span>${escapeHtml(item.label)}</span>
+                                            </div>
+                                            <span class="info-status-icon" style="font-weight: 700; font-size: 18px;">${displayValue}</span>
                                         </div>
-                                        <span class="info-status-icon"><i class="fas ${status.icon}"></i></span>
-                                    </div>
-                                `;
-                            }).join('')}
+                                    `;
+                        } else {
+                            // Para limpeza, mostrar SIM/NÃO/NA
+                            const status = statusFor(item.value);
+                            return `
+                                        <div class="info-status ${status.className}">
+                                            <div class="info-status-label">
+                                                <span>${escapeHtml(item.label)}</span>
+                                            </div>
+                                            <span class="info-status-icon"><i class="fas ${status.icon}"></i></span>
+                                        </div>
+                                    `;
+                        }
+                    }).join('')}
                         </div>
                     `;
                 };
@@ -1204,11 +1696,11 @@
                     </div>
                     <div class="info-modal-section">
                         <span class="info-modal-title"><i class="fas fa-broom"></i> Itens de Limpeza</span>
-                        ${renderStatusGrid(itensLimpeza)}
+                        ${renderStatusGrid(itensLimpeza, false)}
                     </div>
                     <div class="info-modal-section">
                         <span class="info-modal-title"><i class="fas fa-box-open"></i> Itens de Reposicao</span>
-                        ${renderStatusGrid(itensReposicao)}
+                        ${renderStatusGrid(itensReposicao, true)}
                     </div>
                     <div class="info-modal-section">
                         <span class="info-modal-title"><i class="fas fa-comment-alt"></i> Observacoes</span>
@@ -1299,19 +1791,19 @@
             });
     }
 
-    document.getElementById('editTipo').addEventListener('change', function() {
+    document.getElementById('editTipo').addEventListener('change', function () {
         if (currentRegistroData) {
             currentRegistroData.tipo_limpeza = this.value;
         }
         toggleCamposTerminalEdit();
     });
-    document.getElementById('editCriticidade').addEventListener('change', function() {
+    document.getElementById('editCriticidade').addEventListener('change', function () {
         if (currentRegistroData) {
             currentRegistroData.criticidade = this.value;
         }
     });
 
-    document.getElementById('btnSalvarEdit').addEventListener('click', function() {
+    document.getElementById('btnSalvarEdit').addEventListener('click', function () {
         if (!currentEditId) return;
 
         const colaboradoresJson = document.getElementById('colaboradoresJsonEdit').value;
@@ -1371,14 +1863,14 @@
 
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
-    document.getElementById('btnExcluirModal').addEventListener('click', function() {
+    document.getElementById('btnExcluirModal').addEventListener('click', function () {
         if (!currentEditId) return;
 
         document.getElementById('deleteId').textContent = currentEditId;
         deleteModal.show();
     });
 
-    document.getElementById('confirmDelete').addEventListener('click', function() {
+    document.getElementById('confirmDelete').addEventListener('click', function () {
         const idToDelete = currentEditId;
 
         fetch(`/excluir-registro/${idToDelete}/`, {

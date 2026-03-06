@@ -255,7 +255,7 @@
             </div>
         </div>
 
-        
+
         <div id="modalReposicao" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
@@ -264,50 +264,86 @@
                 </div>
                 <div class="modal-body">
                     <div class="item-limpeza">
-                        <label class="item-label">Papel Higiênico</label>
-                        <div class="item-opcoes">
-                            <label class="radio-label">
-                                <input type="radio" name="modal_papel_hig" value="S"> SIM
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="modal_papel_hig" value="N"> NÃO
-                            </label>
+                        <label class="item-label">
+                            <i class="fas fa-toilet-paper"></i> Papel Higiênico
+                        </label>
+                        <div class="item-contador">
+                            <button type="button" class="btn-quantidade btn-menos" data-item="papel_hig">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number"
+                                   class="input-quantidade"
+                                   id="display_papel_hig"
+                                   value="0"
+                                   readonly
+                                   min="0"
+                                   max="999">
+                            <button type="button" class="btn-quantidade btn-mais" data-item="papel_hig">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
 
                     <div class="item-limpeza">
-                        <label class="item-label">Papel Toalha</label>
-                        <div class="item-opcoes">
-                            <label class="radio-label">
-                                <input type="radio" name="modal_papel_toalha" value="S"> SIM
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="modal_papel_toalha" value="N"> NÃO
-                            </label>
+                        <label class="item-label">
+                            <i class="fas fa-hand-paper"></i> Papel Toalha
+                        </label>
+                        <div class="item-contador">
+                            <button type="button" class="btn-quantidade btn-menos" data-item="papel_toalha">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number"
+                                   class="input-quantidade"
+                                   id="display_papel_toalha"
+                                   value="0"
+                                   readonly
+                                   min="0"
+                                   max="999">
+                            <button type="button" class="btn-quantidade btn-mais" data-item="papel_toalha">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
 
                     <div class="item-limpeza">
-                        <label class="item-label">Álcool</label>
-                        <div class="item-opcoes">
-                            <label class="radio-label">
-                                <input type="radio" name="modal_alcool" value="S"> SIM
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="modal_alcool" value="N"> NÃO
-                            </label>
+                        <label class="item-label">
+                            <i class="fas fa-spray-can"></i> Álcool
+                        </label>
+                        <div class="item-contador">
+                            <button type="button" class="btn-quantidade btn-menos" data-item="alcool">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number"
+                                   class="input-quantidade"
+                                   id="display_alcool"
+                                   value="0"
+                                   readonly
+                                   min="0"
+                                   max="999">
+                            <button type="button" class="btn-quantidade btn-mais" data-item="alcool">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
 
                     <div class="item-limpeza">
-                        <label class="item-label">Sabonete</label>
-                        <div class="item-opcoes">
-                            <label class="radio-label">
-                                <input type="radio" name="modal_sabonete" value="S"> SIM
-                            </label>
-                            <label class="radio-label">
-                                <input type="radio" name="modal_sabonete" value="N"> NÃO
-                            </label>
+                        <label class="item-label">
+                            <i class="fas fa-pump-soap"></i> Sabonete
+                        </label>
+                        <div class="item-contador">
+                            <button type="button" class="btn-quantidade btn-menos" data-item="sabonete">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number"
+                                   class="input-quantidade"
+                                   id="display_sabonete"
+                                   value="0"
+                                   readonly
+                                   min="0"
+                                   max="999">
+                            <button type="button" class="btn-quantidade btn-mais" data-item="sabonete">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </div>
                 </div>

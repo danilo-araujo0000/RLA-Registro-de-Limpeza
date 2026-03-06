@@ -27,3 +27,14 @@
     background-color: #6c757d !important;
     color: white !important;
 }
+.badge-quantidade {
+    background: linear-gradient(135deg, #4fc3f7 0%, #0288d1 100%) !important;
+    color: white !important;
+    padding: 8px 16px !important;
+    border-radius: 25px !important;
+    font-weight: 700 !important;
+    font-size: 15px !important;
+    box-shadow: 0 3px 8px rgba(3, 169, 244, 0.35) !important;
+    display: inline-block !important;
+    margin: 4px !important;
+}
