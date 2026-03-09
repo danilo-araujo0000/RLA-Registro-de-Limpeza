@@ -27,3 +27,11 @@
     background-color: #6c757d !important;
     color: white !important;
 }
+.badge-qty-zero {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+.badge-qty-positive {
+    background-color: #28a745 !important;
+    color: white !important;
+}

@@ -300,6 +300,33 @@
     accent-color: #28a745;
 }
 
+/* Cores para itens de limpeza selecionados (SIM/NÃO/NA) */
+#modalItensLimpeza .radio-label:has(input[value="S"]:checked) {
+    background-color: rgba(40, 167, 69, 0.25);
+    border: 2px solid #28a745;
+}
+
+#modalItensLimpeza .radio-label:has(input[value="N"]:checked) {
+    background-color: rgba(220, 53, 69, 0.25);
+    border: 2px solid #dc3545;
+}
+
+#modalItensLimpeza .radio-label:has(input[value="NA"]:checked) {
+    background-color: rgba(255, 193, 7, 0.25);
+    border: 2px solid #ffc107;
+}
+
+/* Cores para itens de reposição selecionados (SIM/NÃO) */
+#modalReposicao .radio-label:has(input[value="S"]:checked) {
+    background-color: rgba(40, 167, 69, 0.25);
+    border: 2px solid #28a745;
+}
+
+#modalReposicao .radio-label:has(input[value="N"]:checked) {
+    background-color: rgba(220, 53, 69, 0.25);
+    border: 2px solid #dc3545;
+}
+
 .item-limpeza.erro {
     background-color: #fff3cd;
     border-left: 5px solid #ffc107;

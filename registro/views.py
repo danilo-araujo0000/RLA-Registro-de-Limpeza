@@ -282,8 +282,8 @@ def salvar_registro_view(request):
 def sucesso_view(request):
     return render(request, 'sucesso.html')
 
-@ip_whitelist_required()
-def salas_view(request):
+
+def _load_salas_context():
     conn = None
     cursor = None
     salas = []
@@ -389,28 +389,46 @@ def salas_view(request):
                 'ultima_terminal_hora': ultima_terminal_hora_fmt,
             })
 
-    except oracledb.Error as e:
-        error_obj, = e.args
-        return render(request, 'error.html', {'message': f"Erro de banco de dados: {error_obj.message}"})
     finally:
         if cursor:
             cursor.close()
         if conn:
             conn.close()
 
-    return render(request, 'salas.html', {
+    return {
         'salas': salas,
         'setores': sorted(setores_dict.values(), key=lambda x: x['nome'])
-    })
+    }
+
 
 @ip_whitelist_required()
+def salas_view(request):
+    try:
+        context = _load_salas_context()
+    except oracledb.Error as e:
+        error_obj, = e.args
+        return render(request, 'error.html', {'message': f"Erro de banco de dados: {error_obj.message}"})
+
+    return render(request, 'salas.html', context)
+
+
+def salas_publico_view(request):
+    try:
+        context = _load_salas_context()
+    except oracledb.Error as e:
+        error_obj, = e.args
+        return render(request, 'error.html', {'message': f"Erro de banco de dados: {error_obj.message}"})
+
+    return render(request, 'salas_publico.html', context)
+
+
 def historico_view(request, sala_id):
     conn = None
     cursor = None
     sala_data = None
     registros = []
     offset = int(request.GET.get('offset', 0))
-    limit = 8
+    limit = 10
     is_ajax = request.GET.get('ajax', '0') == '1'
 
     try:
@@ -455,6 +473,46 @@ def historico_view(request, sala_id):
         tipo_limpeza_map = {1: 'concorrente', 2: 'terminal'}
         criticidade_map = {1: 'crítico', 2: 'semi-crítico', 3: 'não-crítico'}
 
+        def normalizar_status_item(valor):
+            if valor is None:
+                return 'NA'
+
+            valor_str = str(valor).strip()
+            if not valor_str:
+                return 'NA'
+
+            valor_upper = valor_str.upper()
+            if valor_upper in {'1', 'S', 'SIM', 'TRUE', 'T'}:
+                return 'S'
+            if valor_upper in {'0', 'N', 'NAO', 'NÃO', 'FALSE', 'F'}:
+                return 'N'
+            if valor_upper in {'NA', 'N/A', 'NULL', 'NONE'}:
+                return 'NA'
+            return valor_upper
+
+        def normalizar_quantidade_reposicao(valor):
+            if valor is None:
+                return 0
+
+            if isinstance(valor, (int, float)):
+                return int(valor) if valor > 0 else 0
+
+            valor_str = str(valor).strip()
+            if not valor_str:
+                return 0
+
+            valor_upper = valor_str.upper()
+            if valor_upper in {'S', 'SIM', 'TRUE', 'T'}:
+                return 1
+            if valor_upper in {'N', 'NA', 'N/A', 'NAO', 'NÃO', 'FALSE', 'F', 'NULL', 'NONE'}:
+                return 0
+
+            try:
+                qtd = int(float(valor_str.replace(',', '.')))
+                return qtd if qtd > 0 else 0
+            except (ValueError, TypeError):
+                return 0
+
         for row in results:
             colaborador_str = row[1]
             colaborador_formatado = colaborador_str
@@ -474,18 +532,18 @@ def historico_view(request, sala_id):
                 'hora_limpeza': row[3],
                 'tipo_limpeza': tipo_limpeza_map.get(row[4], 'concorrente'),
                 'obs': row[5],
-                'portas': row[6] if row[6] else 'NA',
-                'teto': row[7] if row[7] else 'NA',
-                'paredes': row[8] if row[8] else 'NA',
-                'janelas': row[9] if row[9] else 'NA',
-                'piso': row[10] if row[10] else 'NA',
-                'superficie_mobiliario': row[11] if row[11] else 'NA',
-                'dispenser': row[12] if row[12] else 'NA',
+                'portas': normalizar_status_item(row[6]),
+                'teto': normalizar_status_item(row[7]),
+                'paredes': normalizar_status_item(row[8]),
+                'janelas': normalizar_status_item(row[9]),
+                'piso': normalizar_status_item(row[10]),
+                'superficie_mobiliario': normalizar_status_item(row[11]),
+                'dispenser': normalizar_status_item(row[12]),
                 'criticidade': criticidade_map.get(row[13], ''),
-                'papel_hig': row[14] if row[14] else 'NA',
-                'papel_toalha': row[15] if row[15] else 'NA',
-                'alcool': row[16] if row[16] else 'NA',
-                'sabonete': row[17] if row[17] else 'NA',
+                'papel_hig': normalizar_quantidade_reposicao(row[14]),
+                'papel_toalha': normalizar_quantidade_reposicao(row[15]),
+                'alcool': normalizar_quantidade_reposicao(row[16]),
+                'sabonete': normalizar_quantidade_reposicao(row[17]),
             })
 
         query_count = """
@@ -525,33 +583,34 @@ def historico_view(request, sala_id):
                     html_registros += '<div class="mt-3"><strong>Itens Limpos:</strong><div class="d-flex flex-wrap gap-2 mt-2">'
 
                     if registro['portas'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["portas"].lower()}">Portas: {registro["portas"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["portas"]).lower()}">Portas: {registro["portas"]}</span>'
                     if registro['teto'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["teto"].lower()}">Teto: {registro["teto"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["teto"]).lower()}">Teto: {registro["teto"]}</span>'
                     if registro['paredes'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["paredes"].lower()}">Paredes: {registro["paredes"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["paredes"]).lower()}">Paredes: {registro["paredes"]}</span>'
                     if registro['janelas'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["janelas"].lower()}">Janelas: {registro["janelas"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["janelas"]).lower()}">Janelas: {registro["janelas"]}</span>'
                     if registro['piso'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["piso"].lower()}">Piso: {registro["piso"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["piso"]).lower()}">Piso: {registro["piso"]}</span>'
                     if registro['superficie_mobiliario'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["superficie_mobiliario"].lower()}">Superfície: {registro["superficie_mobiliario"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["superficie_mobiliario"]).lower()}">Superfície: {registro["superficie_mobiliario"]}</span>'
                     if registro['dispenser'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["dispenser"].lower()}">Dispenser: {registro["dispenser"]}</span>'
+                        html_registros += f'<span class="badge badge-{str(registro["dispenser"]).lower()}">Dispenser: {registro["dispenser"]}</span>'
 
                     html_registros += '</div></div>'
 
-                    
+                if registro['tipo_limpeza'] == 'terminal' or registro['tipo_limpeza'] == 'reposicao' or registro['tipo_limpeza'] == 'concorrente':
                     html_registros += '<div class="mt-3"><strong>Reposição:</strong><div class="d-flex flex-wrap gap-2 mt-2">'
 
-                    if registro['papel_hig'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["papel_hig"].lower()}">Papel Higiênico: {registro["papel_hig"]}</span>'
-                    if registro['papel_toalha'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["papel_toalha"].lower()}">Papel Toalha: {registro["papel_toalha"]}</span>'
-                    if registro['alcool'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["alcool"].lower()}">Álcool: {registro["alcool"]}</span>'
-                    if registro['sabonete'] != 'NA':
-                        html_registros += f'<span class="badge badge-{registro["sabonete"].lower()}">Sabonete: {registro["sabonete"]}</span>'
+                    badge_papel_hig = 'badge-qty-positive' if registro['papel_hig'] > 0 else 'badge-qty-zero'
+                    badge_papel_toalha = 'badge-qty-positive' if registro['papel_toalha'] > 0 else 'badge-qty-zero'
+                    badge_alcool = 'badge-qty-positive' if registro['alcool'] > 0 else 'badge-qty-zero'
+                    badge_sabonete = 'badge-qty-positive' if registro['sabonete'] > 0 else 'badge-qty-zero'
+
+                    html_registros += f'<span class="badge {badge_papel_hig}">Papel Higiênico: {registro["papel_hig"]}</span>'
+                    html_registros += f'<span class="badge {badge_papel_toalha}">Papel Toalha: {registro["papel_toalha"]}</span>'
+                    html_registros += f'<span class="badge {badge_alcool}">Álcool: {registro["alcool"]}</span>'
+                    html_registros += f'<span class="badge {badge_sabonete}">Sabonete: {registro["sabonete"]}</span>'
 
                     html_registros += '</div></div>'
 
@@ -586,7 +645,8 @@ def historico_view(request, sala_id):
         'sala': sala_data,
         'registros': registros,
         'has_more': has_more,
-        'offset': offset + len(registros)
+        'offset': offset + len(registros),
+        'page_size': limit
     })
 
 def login_relatorio_view(request):

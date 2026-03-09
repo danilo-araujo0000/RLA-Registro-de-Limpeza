@@ -299,7 +299,7 @@ fun TopBarButtons(
             ),
             shape = MaterialTheme.shapes.small
         ) {
-            Text("HOME")
+            Text("Inicio")
         }
         Button(
             onClick = onRefreshClick,

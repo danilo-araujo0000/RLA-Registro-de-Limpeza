@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% load static %}
+{% block title %}Salas - Painel Público{% endblock %}
+
+{% block style %}
+    <link rel="stylesheet" type="text/css" href="{% static 'css/salas_publico.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card card-publico">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Painel Público de Salas</h2>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Voltar
+        </a>
+    </div>
+
+    <div class="search-box position-relative mb-3">
+        <span class="filtro-icon">
+            <i class="fas fa-search text-muted"></i>
+        </span>
+        <input type="text" id="searchInput" class="form-control filtro-busca" placeholder="Pesquisa geral por sala, setor e informações do card...">
+        <span id="clearSearch" class="clear-search">
+            <i class="fas fa-times"></i>
+        </span>
+    </div>
+
+    <div class="filtros-toolbar mb-3">
+        <button
+            id="toggleFiltrosBtn"
+            class="btn btn-outline-primary"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#painelFiltros"
+            aria-expanded="true"
+            aria-controls="painelFiltros"
+        >
+            <i class="fas fa-filter me-1"></i> Ocultar filtros de lista
+        </button>
+    </div>
+
+    <div id="painelFiltros" class="collapse show">
+        <div class="filter-section-mini mb-4">
+            <div class="row g-3">
+                <div class="col-xl-6 col-md-6">
+                    <label class="form-label"><i class="fas fa-building"></i> Setores</label>
+                    <div class="multi-select-wrap" id="setorFilterWrap">
+                        <button type="button" class="multi-select-btn" id="toggleSetorList">
+                            <span id="setorSelectionLabel">Todos os setores</span>
+                            <i class="fas fa-chevron-down chevron-icon" id="chevronSetor"></i>
+                        </button>
+                        <div id="setorList" class="multi-select-list">
+                            <div class="p-2 border-bottom">
+                                <input type="text" id="setorListSearch" class="form-control form-control-sm" placeholder="Pesquisar setor...">
+                            </div>
+                            <div class="p-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="setorTodos" checked>
+                                    <label class="form-check-label d-flex align-items-center gap-2" for="setorTodos">
+                                        <span class="setor-badge setor-color-all">
+                                            <i class="fas fa-layer-group"></i> Todos
+                                        </span>
+                                    </label>
+                                </div>
+                                <hr class="my-2">
+                                {% for setor in setores %}
+                                <div class="form-check mb-2 setor-option" data-search="{{ setor.nome|lower }}">
+                                    <input
+                                        class="form-check-input setor-checkbox"
+                                        type="checkbox"
+                                        id="setor_{{ forloop.counter }}"
+                                        data-setor="{{ setor.slug }}"
+                                        data-label="{{ setor.nome }}"
+                                    >
+                                    <label class="form-check-label d-flex align-items-center gap-2" for="setor_{{ forloop.counter }}">
+                                        <span class="setor-badge {{ setor.color }}">
+                                            <i class="fas fa-building"></i> {{ setor.nome }}
+                                        </span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-6 col-md-6">
+                    <label class="form-label"><i class="fas fa-door-open"></i> Salas</label>
+                    <div class="multi-select-wrap" id="salaFilterWrap">
+                        <button type="button" class="multi-select-btn" id="toggleSalaList">
+                            <span id="salaSelectionLabel">Todas as salas</span>
+                            <i class="fas fa-chevron-down chevron-icon" id="chevronSala"></i>
+                        </button>
+                        <div id="salaList" class="multi-select-list">
+                            <div class="p-2 border-bottom">
+                                <input type="text" id="salaListSearch" class="form-control form-control-sm" placeholder="Pesquisar sala...">
+                            </div>
+                            <div class="p-2">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="salaTodos" checked>
+                                    <label class="form-check-label d-flex align-items-center gap-2" for="salaTodos">
+                                        <span class="sala-badge sala-badge-all">
+                                            <i class="fas fa-door-open"></i> Todas
+                                        </span>
+                                    </label>
+                                </div>
+                                <hr class="my-2">
+                                {% for sala in salas|dictsort:"nome_sala" %}
+                                <div class="form-check mb-2 sala-option" data-search="{{ sala.nome_sala|lower }} {{ sala.nome_setor|lower }}">
+                                    <input
+                                        class="form-check-input sala-checkbox"
+                                        type="checkbox"
+                                        id="sala_{{ forloop.counter }}"
+                                        data-sala-id="{{ sala.id_sala }}"
+                                        data-label="{{ sala.nome_sala }}"
+                                    >
+                                    <label class="form-check-label d-flex align-items-center gap-2" for="sala_{{ forloop.counter }}">
+                                        <span class="sala-badge">
+                                            <i class="fas fa-door-open"></i> {{ sala.nome_sala }}
+                                        </span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="salas-container" class="salas-grid">
+        {% for sala in salas %}
+        <div class="sala-item" data-setor="{{ sala.setor_slug }}" data-sala-id="{{ sala.id_sala }}" onclick="window.location.href='{% url 'historico_view' sala.id_sala %}'">
+            <div class="sala-content">
+                <div class="sala-info">
+                    <h5 class="mb-2">
+                        <i class="fas fa-door-open"></i> {{ sala.nome_sala }}
+                    </h5>
+                    <span class="badge badge-setor {{ sala.setor_color }}">
+                        <i class="fas fa-building"></i> {{ sala.nome_setor }}
+                    </span>
+                </div>
+                <div class="sala-meta">
+                    <span class="sala-meta-chip">
+                        <span class="meta-text">
+                            <strong>Concorrente</strong>
+                            <span>
+                                {{ sala.ultima_concorrente }}
+                                {% if sala.ultima_concorrente_hora %}
+                                    &nbsp;{{ sala.ultima_concorrente_hora }}
+                                {% endif %}
+                            </span>
+                        </span>
+                    </span>
+                    <span class="sala-meta-chip meta-terminal">
+                        <span class="meta-text">
+                            <strong>Terminal</strong>
+                            <span>
+                                {{ sala.ultima_terminal_data }}
+                                {% if sala.ultima_terminal_hora %}
+                                    &nbsp;{{ sala.ultima_terminal_hora }}
+                                {% endif %}
+                            </span>
+                        </span>
+                    </span>
+                </div>
+                <div class="sala-chevron">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-center text-muted">Nenhuma sala encontrada.</p>
+        {% endfor %}
+    </div>
+    <p id="nenhumaSalaFiltrada" class="text-center text-muted mt-3 d-none">Nenhuma sala encontrada para os filtros selecionados.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const salasContainer = document.getElementById('salas-container');
+    const salaItems = Array.from(salasContainer.querySelectorAll('.sala-item'));
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+    const nenhumaSalaFiltrada = document.getElementById('nenhumaSalaFiltrada');
+    const painelFiltros = document.getElementById('painelFiltros');
+    const toggleFiltrosBtn = document.getElementById('toggleFiltrosBtn');
+
+    const toggleSetorList = document.getElementById('toggleSetorList');
+    const setorList = document.getElementById('setorList');
+    const setorListSearch = document.getElementById('setorListSearch');
+    const setorTodos = document.getElementById('setorTodos');
+    const setorCheckboxes = Array.from(document.querySelectorAll('.setor-checkbox'));
+    const setorSelectionLabel = document.getElementById('setorSelectionLabel');
+    const chevronSetor = document.getElementById('chevronSetor');
+
+    const toggleSalaList = document.getElementById('toggleSalaList');
+    const salaList = document.getElementById('salaList');
+    const salaListSearch = document.getElementById('salaListSearch');
+    const salaTodos = document.getElementById('salaTodos');
+    const salaCheckboxes = Array.from(document.querySelectorAll('.sala-checkbox'));
+    const salaSelectionLabel = document.getElementById('salaSelectionLabel');
+    const chevronSala = document.getElementById('chevronSala');
+
+    function normalizarTexto(texto) {
+        return (texto || '')
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim();
+    }
+
+    function atualizarResumoSelecao() {
+        const setoresSelecionados = setorCheckboxes.filter(cb => cb.checked);
+        if (setorTodos.checked || setoresSelecionados.length === 0) {
+            setorSelectionLabel.textContent = 'Todos os setores';
+        } else if (setoresSelecionados.length === 1) {
+            setorSelectionLabel.textContent = setoresSelecionados[0].dataset.label;
+        } else {
+            setorSelectionLabel.textContent = `${setoresSelecionados.length} setores selecionados`;
+        }
+
+        const salasSelecionadas = salaCheckboxes.filter(cb => cb.checked);
+        if (salaTodos.checked || salasSelecionadas.length === 0) {
+            salaSelectionLabel.textContent = 'Todas as salas';
+        } else if (salasSelecionadas.length === 1) {
+            salaSelectionLabel.textContent = salasSelecionadas[0].dataset.label;
+        } else {
+            salaSelectionLabel.textContent = `${salasSelecionadas.length} salas selecionadas`;
+        }
+    }
+
+    function obterSetoresSelecionados() {
+        if (setorTodos.checked) {
+            return ['todos'];
+        }
+        return setorCheckboxes.filter(cb => cb.checked).map(cb => cb.dataset.setor);
+    }
+
+    function obterSalasSelecionadas() {
+        if (salaTodos.checked) {
+            return ['todos'];
+        }
+        return salaCheckboxes.filter(cb => cb.checked).map(cb => cb.dataset.salaId);
+    }
+
+    function aplicarFiltrosSalas() {
+        const termoGeral = normalizarTexto(searchInput ? searchInput.value : '');
+        const setoresSelecionados = obterSetoresSelecionados();
+        const salasSelecionadas = obterSalasSelecionadas();
+        let totalVisiveis = 0;
+
+        if (clearSearch) {
+            clearSearch.style.display = termoGeral ? 'block' : 'none';
+        }
+
+        salaItems.forEach(item => {
+            const textoItem = item.dataset.searchText || normalizarTexto(item.textContent);
+            const setorItem = item.dataset.setor;
+            const salaItem = item.dataset.salaId;
+
+            const matchTexto = !termoGeral || textoItem.includes(termoGeral);
+            const matchSetor = setoresSelecionados.includes('todos') || setoresSelecionados.includes(setorItem);
+            const matchSala = salasSelecionadas.includes('todos') || salasSelecionadas.includes(salaItem);
+            const exibir = matchTexto && matchSetor && matchSala;
+
+            item.style.display = exibir ? 'block' : 'none';
+            if (exibir) {
+                totalVisiveis += 1;
+            }
+        });
+
+        if (nenhumaSalaFiltrada) {
+            nenhumaSalaFiltrada.classList.toggle('d-none', totalVisiveis > 0);
+        }
+    }
+
+    function toggleLista(listElement, chevronElement, outraLista, outroChevron) {
+        const jaAberta = listElement.style.display === 'block';
+        listElement.style.display = jaAberta ? 'none' : 'block';
+        chevronElement.classList.toggle('aberto', !jaAberta);
+
+        if (outraLista) {
+            outraLista.style.display = 'none';
+        }
+        if (outroChevron) {
+            outroChevron.classList.remove('aberto');
+        }
+    }
+
+    function filtrarItensDaLista(inputElement, selector) {
+        const termo = normalizarTexto(inputElement.value);
+        const itens = document.querySelectorAll(selector);
+
+        itens.forEach(item => {
+            const texto = normalizarTexto(item.dataset.search || item.textContent);
+            item.style.display = !termo || texto.includes(termo) ? '' : 'none';
+        });
+    }
+
+    salaItems.forEach(item => {
+        item.dataset.searchText = normalizarTexto(item.textContent);
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', aplicarFiltrosSalas);
+    }
+
+    if (clearSearch) {
+        clearSearch.addEventListener('click', function() {
+            searchInput.value = '';
+            aplicarFiltrosSalas();
+        });
+    }
+
+    setorCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (this.checked) {
+                setorTodos.checked = false;
+            }
+            if (!setorCheckboxes.some(item => item.checked)) {
+                setorTodos.checked = true;
+            }
+            atualizarResumoSelecao();
+            aplicarFiltrosSalas();
+        });
+    });
+
+    salaCheckboxes.forEach(cb => {
+        cb.addEventListener('change', function() {
+            if (this.checked) {
+                salaTodos.checked = false;
+            }
+            if (!salaCheckboxes.some(item => item.checked)) {
+                salaTodos.checked = true;
+            }
+            atualizarResumoSelecao();
+            aplicarFiltrosSalas();
+        });
+    });
+
+    setorTodos.addEventListener('change', function() {
+        if (setorTodos.checked) {
+            setorCheckboxes.forEach(cb => {
+                cb.checked = false;
+            });
+        }
+        atualizarResumoSelecao();
+        aplicarFiltrosSalas();
+    });
+
+    salaTodos.addEventListener('change', function() {
+        if (salaTodos.checked) {
+            salaCheckboxes.forEach(cb => {
+                cb.checked = false;
+            });
+        }
+        atualizarResumoSelecao();
+        aplicarFiltrosSalas();
+    });
+
+    toggleSetorList.addEventListener('click', function() {
+        toggleLista(setorList, chevronSetor, salaList, chevronSala);
+    });
+
+    toggleSalaList.addEventListener('click', function() {
+        toggleLista(salaList, chevronSala, setorList, chevronSetor);
+    });
+
+    if (setorListSearch) {
+        setorListSearch.addEventListener('input', function() {
+            filtrarItensDaLista(setorListSearch, '.setor-option');
+        });
+    }
+
+    if (salaListSearch) {
+        salaListSearch.addEventListener('input', function() {
+            filtrarItensDaLista(salaListSearch, '.sala-option');
+        });
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('#setorFilterWrap')) {
+            setorList.style.display = 'none';
+            chevronSetor.classList.remove('aberto');
+        }
+        if (!event.target.closest('#salaFilterWrap')) {
+            salaList.style.display = 'none';
+            chevronSala.classList.remove('aberto');
+        }
+    });
+
+    if (painelFiltros && toggleFiltrosBtn) {
+        painelFiltros.addEventListener('shown.bs.collapse', function() {
+            toggleFiltrosBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Ocultar filtros de lista';
+        });
+        painelFiltros.addEventListener('hidden.bs.collapse', function() {
+            toggleFiltrosBtn.innerHTML = '<i class="fas fa-filter me-1"></i> Exibir filtros de lista';
+        });
+    }
+
+    atualizarResumoSelecao();
+    aplicarFiltrosSalas();
+</script>
+{% endblock %}

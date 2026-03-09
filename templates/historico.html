@@ -11,7 +11,7 @@
 <div class="card">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Histórico de Limpeza</h2>
-        <a href="{% url 'index_view' sala.id_sala %}" class="btn btn-secondary">Voltar</a>
+        <a href="javascript:history.back()" class="btn btn-secondary">Voltar</a>
     </div>
 
     <div class="mb-4">
@@ -31,6 +31,10 @@
     </div>
 
     <hr>
+
+    <p class="text-muted small mb-3">
+        Exibindo os {{ page_size|default:10 }} últimos registros. Use o botão abaixo para carregar mais, de {{ page_size|default:10 }} em {{ page_size|default:10 }}.
+    </p>
 
     <div id="registros-container">
         {% for registro in registros %}
@@ -79,10 +83,10 @@
             <div class="mt-3">
                 <strong>Reposição:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                    {% if registro.papel_hig != 'NA' %}<span class="badge badge-{{ registro.papel_hig|lower }}">Papel Higiênico: {{ registro.papel_hig }}</span>{% endif %}
-                    {% if registro.papel_toalha != 'NA' %}<span class="badge badge-{{ registro.papel_toalha|lower }}">Papel Toalha: {{ registro.papel_toalha }}</span>{% endif %}
-                    {% if registro.alcool != 'NA' %}<span class="badge badge-{{ registro.alcool|lower }}">Álcool: {{ registro.alcool }}</span>{% endif %}
-                    {% if registro.sabonete != 'NA' %}<span class="badge badge-{{ registro.sabonete|lower }}">Sabonete: {{ registro.sabonete }}</span>{% endif %}
+                    <span class="badge {% if registro.papel_hig > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Papel Higiênico: {{ registro.papel_hig }}</span>
+                    <span class="badge {% if registro.papel_toalha > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Papel Toalha: {{ registro.papel_toalha }}</span>
+                    <span class="badge {% if registro.alcool > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Álcool: {{ registro.alcool }}</span>
+                    <span class="badge {% if registro.sabonete > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Sabonete: {{ registro.sabonete }}</span>
                 </div>
             </div>
             {% endif %}
@@ -101,7 +105,7 @@
 
     {% if has_more %}
     <div class="text-center mt-3">
-        <button id="btn-mostrar-mais" class="btn btn-primary" onclick="carregarMais()">Mostrar Mais</button>
+        <button id="btn-mostrar-mais" class="btn btn-primary" onclick="carregarMais()">Mostrar mais {{ page_size|default:10 }}</button>
     </div>
     {% endif %}
 </div>
@@ -112,7 +116,8 @@
     <script>
         window.historicoData = {
             offset: {{ offset }},
-            salaId: {{ sala.id_sala }}
+            salaId: {{ sala.id_sala }},
+            pageSize: {{ page_size|default:10 }}
         };
     </script>
     <script src="{% static 'js/historico.js' %}"></script>

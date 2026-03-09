@@ -1,6 +1,7 @@
 // Data passed from Django template
 let offset = window.historicoData ? window.historicoData.offset : 0;
 const salaId = window.historicoData ? window.historicoData.salaId : null;
+const pageSize = window.historicoData ? window.historicoData.pageSize : 10;
 const tipoFilter = document.getElementById('tipoFilter');
 const registrosContainer = document.getElementById('registros-container');
 
@@ -59,7 +60,7 @@ async function carregarMais() {
                 btn.remove();
             } else {
                 btn.disabled = false;
-                btn.textContent = 'Mostrar Mais';
+                btn.textContent = `Mostrar mais ${pageSize}`;
             }
             aplicarFiltroTipo();
         } else {
