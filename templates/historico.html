@@ -83,10 +83,10 @@
             <div class="mt-3">
                 <strong>Reposição:</strong>
                 <div class="d-flex flex-wrap gap-2 mt-2">
-                    <span class="badge {% if registro.papel_hig > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Papel Higiênico: {{ registro.papel_hig }}</span>
-                    <span class="badge {% if registro.papel_toalha > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Papel Toalha: {{ registro.papel_toalha }}</span>
-                    <span class="badge {% if registro.alcool > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Álcool: {{ registro.alcool }}</span>
-                    <span class="badge {% if registro.sabonete > 0 %}badge-qty-positive{% else %}badge-qty-zero{% endif %}">Sabonete: {{ registro.sabonete }}</span>
+                    <span class="badge {% if registro.papel_hig > 0 %}bg-success{% else %}bg-danger{% endif %}">Papel Higiênico: {{ registro.papel_hig }}</span>
+                    <span class="badge {% if registro.papel_toalha > 0 %}bg-success{% else %}bg-danger{% endif %}">Papel Toalha: {{ registro.papel_toalha }}</span>
+                    <span class="badge {% if registro.alcool > 0 %}bg-success{% else %}bg-danger{% endif %}">Álcool: {{ registro.alcool }}</span>
+                    <span class="badge {% if registro.sabonete > 0 %}bg-success{% else %}bg-danger{% endif %}">Sabonete: {{ registro.sabonete }}</span>
                 </div>
             </div>
             {% endif %}

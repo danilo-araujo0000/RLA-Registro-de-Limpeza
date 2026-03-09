@@ -624,14 +624,15 @@ def historico_view(request, sala_id):
 
                     html_registros += '<div class="mt-3"><strong>Reposição:</strong><div class="d-flex flex-wrap gap-2 mt-2">'
 
-                    if registro['papel_hig'] > 0:
-                        html_registros += f'<span class="badge badge-quantidade">Papel Higiênico: {registro["papel_hig"]} un.</span>'
-                    if registro['papel_toalha'] > 0:
-                        html_registros += f'<span class="badge badge-quantidade">Papel Toalha: {registro["papel_toalha"]} un.</span>'
-                    if registro['alcool'] > 0:
-                        html_registros += f'<span class="badge badge-quantidade">Álcool: {registro["alcool"]} un.</span>'
-                    if registro['sabonete'] > 0:
-                        html_registros += f'<span class="badge badge-quantidade">Sabonete: {registro["sabonete"]} un.</span>'
+                    badge_papel_hig = 'bg-success' if registro['papel_hig'] > 0 else 'bg-danger'
+                    badge_papel_toalha = 'bg-success' if registro['papel_toalha'] > 0 else 'bg-danger'
+                    badge_alcool = 'bg-success' if registro['alcool'] > 0 else 'bg-danger'
+                    badge_sabonete = 'bg-success' if registro['sabonete'] > 0 else 'bg-danger'
+
+                    html_registros += f'<span class="badge {badge_papel_hig}">Papel Higiênico: {registro["papel_hig"]}</span>'
+                    html_registros += f'<span class="badge {badge_papel_toalha}">Papel Toalha: {registro["papel_toalha"]}</span>'
+                    html_registros += f'<span class="badge {badge_alcool}">Álcool: {registro["alcool"]}</span>'
+                    html_registros += f'<span class="badge {badge_sabonete}">Sabonete: {registro["sabonete"]}</span>'
 
                     html_registros += '</div></div>'
 
