@@ -194,20 +194,25 @@ function confirmarItensLimpeza() {
     fecharModal();
 }
 
-// Objeto para armazenar quantidades de reposição
 const quantidades = {
     papel_hig: 0,
     papel_toalha: 0,
     alcool: 0,
     sabonete: 0
 };
+const itensReposicao = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
+
+function reposicaoConfirmada() {
+    return itensReposicao.every(item => {
+        const campo = document.getElementById(`${item}_hidden`);
+        return campo && campo.value !== '';
+    });
+}
 
 function abrirModalReposicao() {
     document.getElementById('modalReposicao').classList.add('show');
 
-    // Carregar valores atuais dos campos hidden
-    const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-    itens.forEach(item => {
+    itensReposicao.forEach(item => {
         const valorAtual = parseInt(document.getElementById(`${item}_hidden`).value) || 0;
         quantidades[item] = valorAtual;
         atualizarDisplayQuantidade(item);
@@ -218,7 +223,6 @@ function fecharModalReposicao() {
     document.getElementById('modalReposicao').classList.remove('show');
 }
 
-// Função para incrementar quantidade
 function incrementarQuantidade(item) {
     const display = document.getElementById(`display_${item}`);
     const max = parseInt(display.getAttribute('max')) || 999;
@@ -229,7 +233,6 @@ function incrementarQuantidade(item) {
     }
 }
 
-// Função para decrementar quantidade
 function decrementarQuantidade(item) {
     const min = 0;
 
@@ -256,23 +259,20 @@ function atualizarDisplayQuantidade(item) {
 
 // Função para resetar quantidades
 function resetarQuantidades() {
-    const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-    itens.forEach(item => {
+    itensReposicao.forEach(item => {
         quantidades[item] = 0;
         atualizarDisplayQuantidade(item);
     });
 }
 
 function confirmarItensReposicao() {
-    const itens = ['papel_hig', 'papel_toalha', 'alcool', 'sabonete'];
-
     // Transferir quantidades para campos hidden
-    itens.forEach(item => {
+    itensReposicao.forEach(item => {
         document.getElementById(`${item}_hidden`).value = quantidades[item];
     });
 
     // Calcular total de itens repostos
-    const total = itens.reduce((sum, item) => sum + quantidades[item], 0);
+    const total = itensReposicao.reduce((sum, item) => sum + quantidades[item], 0);
 
     // Atualizar contador no botão
     const contador = document.getElementById('contadorReposicao');
@@ -480,8 +480,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        // Validação de reposição removida - agora 0 é um valor válido
-        // Os campos sempre terão valor (0 ou maior)
+        if (!reposicaoConfirmada()) {
+            e.preventDefault();
+            const campoValidacao = document.getElementById('validacao_reposicao');
+            campoValidacao.setAttribute('required', 'required');
+            campoValidacao.setCustomValidity(' confirme os itens de reposição');
+            campoValidacao.reportValidity();
+
+            setTimeout(() => {
+                abrirModalReposicao();
+            }, 100);
+            return false;
+        }
 
         if (tipoLimpeza === '2') { 
             const itensLimpeza = ['portas', 'teto', 'paredes', 'janelas', 'piso', 'superficie_mobiliario', 'dispenser'];
