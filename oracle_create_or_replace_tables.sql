@@ -151,6 +151,23 @@ CREATE TABLE users_relatorio (
 );
 /
 
+-- Triggers para atualizar data_atualizacao automaticamente em UPDATE
+CREATE OR REPLACE TRIGGER trg_registro_ippermitido_upd
+BEFORE UPDATE ON registro_ippermitido
+FOR EACH ROW
+BEGIN
+    :NEW.data_atualizacao := SYSTIMESTAMP;
+END;
+/
+
+CREATE OR REPLACE TRIGGER trg_registro_dispositivo_upd
+BEFORE UPDATE ON registro_dispositivopermitido
+FOR EACH ROW
+BEGIN
+    :NEW.data_atualizacao := SYSTIMESTAMP;
+END;
+/
+
 -- --------------------------------------------------------------------------
 -- 3) Índices recomendados para as queries do projeto
 -- --------------------------------------------------------------------------
