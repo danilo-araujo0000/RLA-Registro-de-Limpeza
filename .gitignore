@@ -120,8 +120,8 @@ Thumbs.db
 *.tar.gz
 *.rar
 
-#docker 
-.docker-compose.yml
+# Docker
+docker-compose.yml
 
 # Coverage reports
 htmlcov/
