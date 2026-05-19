@@ -12,10 +12,16 @@ services:
       - PYTHONUNBUFFERED=1
       - SECRET_KEY=594F93760230ACA19A057FBEE71FC058
       - DEBUG=False
-      - DB_NAME=172.19.0.250:1521/prdamevo
+      - DB_NAME=172.17.0.254:1521/prodmv
       - DB_USER=dbasistemas
       - DB_PASSWORD=dbasistemas
       - DJANGO_SUPERUSER_USERNAME=admin
       - DJANGO_SUPERUSER_EMAIL=suporteame.ti@santacasavotuporanga.com.br
-      - DJANGO_SUPERUSER_PASSWORD=adminVsti2013
+      - DJANGO_SUPERUSER_PASSWORD=4kFxsWa.
     restart: unless-stopped
+
+    networks:
+      - rede_RLA
+networks:
+  rede_RLA:
+    external: true

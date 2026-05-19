@@ -752,7 +752,8 @@ def relatorio_view(request):
                 r.id_tipo_limpeza, r.obs, r.id_criticidade,
                 s.nome_sala, st.nome_setor, st.id_setor,
                 r.portas, r.teto, r.paredes, r.janelas, r.piso,
-                r.superficie_mobiliario, r.dispenser
+                r.superficie_mobiliario, r.dispenser,
+                r.papel_hig, r.papel_toalha, r.alcool, r.sabonete
             FROM if_tbl_registro_higiene r
             JOIN if_tbl_sala_higiene s ON r.id_sala = s.id_sala
             JOIN if_tbl_setores_higiene st ON s.id_setor = st.id_setor
@@ -814,6 +815,10 @@ def relatorio_view(request):
                 'piso': row[14],
                 'superficie_mobiliario': row[15],
                 'dispenser': row[16],
+                'papel_hig': int(row[17]) if row[17] is not None and str(row[17]).replace('-', '').isdigit() else 0,
+                'papel_toalha': int(row[18]) if row[18] is not None and str(row[18]).replace('-', '').isdigit() else 0,
+                'alcool': int(row[19]) if row[19] is not None and str(row[19]).replace('-', '').isdigit() else 0,
+                'sabonete': int(row[20]) if row[20] is not None and str(row[20]).replace('-', '').isdigit() else 0,
             })
 
     except oracledb.Error as e:
