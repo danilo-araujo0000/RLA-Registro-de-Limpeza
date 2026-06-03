@@ -98,6 +98,7 @@ instantclient*/
 # Logs and databases
 *.log
 *.sql
+!oracle_create_or_replace_tables.sql
 *.sqlite
 *.sqlite3
 
